@@ -40,6 +40,7 @@ Route::post('forgot-password', [AuthController::class, 'PostForgotPassword']);
 Route::get('reset/{token}', [AuthController::class, 'reset']);
 Route::post('reset/{token}', [AuthController::class, 'PostReset']);
 
+
   //Enlace de ruta para ingresar a dashboard de administrador 
   Route::group(['middleware' => 'admin'], function (){
   Route::get('/admin/dashboard', [DashboardController::class, 'dashboard']);
@@ -111,9 +112,6 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
   Route::post('/admin/assign_subject/update/{id}', [ClassSubjectController::class, 'update']);
   Route::delete('/admin/assign_subject/delete/{id}', [ClassSubjectController::class, 'delete'])->name('admin.assign_subject.delete');
 
-  //Ruta para el coaneldario escolar 
-  Route::get('/admin/calendar/school_calendar', [CalendarController::class, 'school_calendar']);
-
 
   //Enlaces para cambiar la contraseña 
   Route::get('/admin/change_password', [UserController::class, 'change_password'])->name('change.password');
@@ -125,7 +123,6 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
   Route::post('/admin/backup/restore', [BackupController::class, 'restoreBackup'])->name('backup.restore');
   Route::get('/admin/backup/index', [BackupController::class, 'index'])->name('admin.backup.index');
   Route::get('/admin/backup/download/{filename}', [BackupController::class, 'download'])->name('admin.backup.download');
-
 });
 
 
@@ -133,8 +130,10 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
 Route::group(['middleware' => 'common'], function (){
   Route::get('chat', [ChatController::class, 'chat']);
   Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
-
 });
+
+Route::get('calendar', [CalendarController::class, 'school_calendar'])->name('calendar.index');
+
 
 //Enlace de ruta para ingresar a dashboard de maestro 
 Route::group(['middleware' => 'maestro'], function (){

@@ -46,5 +46,4 @@ public function submit_message(Request $request){
         echo json_encode($json);
         return response()->json(['success' => true]);    
     }
-
 }
