@@ -88,61 +88,114 @@
 @section('script')
 <!-- FullCalendar scripts -->
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js'></script>
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
+
+    async function summitEvents(title, arg){
+        const start = new Date(arg.startStr).toISOString().slice(0, 19).replace('T', ' ');
+        const end = new Date(arg.endStr).toISOString().slice(0, 19).replace('T', ' ');
+
+        try{
+            const response = await axios.post('/add-date',
+            {
+
+                title: title,
+                start: start,
+                end: end,
+                allDay: arg.allDay
+            });
+            console.log(response.data); 
+            return resonse.data;
+        }catch(error){
+            console.log(error);
+            return null;
+        }
+    }
+
+    async function getEvents(){
+        try{
+            const response = await axios.get('/get-all-date');
+            console.log(response.data);
+            return response.data;
+        }catch(error){
+            console.log(error);
+            return null;
+        }
+    }
+
+</script>
+
+<script>
+    
+    document.addEventListener('DOMContentLoaded', async function() {
         var calendarEl = document.getElementById('calendar');
-        var calendar = new FullCalendar.Calendar(calendarEl, {
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
-            },
-            editable: true,
-            height: 'auto',
-            expandRows: true,
-            selectable: true,
-            selectMirror: true,
+        try{
+            const newEvents = await getEvents();
+            console.log(newEvents);
+
             
-            select: function(arg) {
-                var title = prompt('Título del Evento:');
-                if (title) {
-                    calendar.addEvent({
-                        title: title,
-                        start: arg.start,
-                        end: arg.end,
-                        allDay: arg.allDay
-                    });
-                }
-                calendar.unselect();
-            },
-            
-            eventClick: function(arg) {
-                if (confirm('¿Estás seguro de que quieres eliminar este evento?')) {
-                    arg.event.remove();
-                }
-            },
-            
-            dayMaxEvents: true,
-            
-            events: [
-                {
-                    title: 'Evento de Todo el Día',
-                    start: '2024-01-01'
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
                 },
-                {
-                    title: 'Evento Largo',
-                    start: '2024-01-07',
-                    end: '2024-01-10'
+                editable: true,
+                height: 'auto',
+                expandRows: true,
+                selectable: true,
+                selectMirror: true,
+                timeZone: 'UTC',
+                events: newEvents,
+                select: async function(arg) {
+                    var title = prompt('Título del Evento:');
+                    if (title) {
+                        calendar.addEvent({
+                            title: title,
+                            start: arg.start,
+                            end: arg.end,
+                            allDay: arg.allDay
+                        });
+                        try{
+                           summitEvents(title, arg);
+                           const newEvents = await getEvents();
+                           calendar.addEvents(newEvents);
+                            
+                        }catch(error){
+                            calendar.unselect();
+                            console.error(error);
+                        }
+                    }
+                    
+                    calendar.unselect();
                 },
-                {
-                    title: 'Reunión',
-                    start: '2024-01-12T10:30:00',
-                    end: '2024-01-12T12:30:00'
-                }
-            ]
-        });
+                
+                eventClick: function(arg) {
+                    console.log(arg.event.id);
+                    if (confirm('¿Estás seguro de que quieres eliminar este evento?')) {
+                        try{
+
+                            axios.delete('/delete-date/' + arg.event.id);
+                            arg.event.remove();
+                        }catch(error){
+                            console.error(error);
+                        }
+                    }
+                },
+                
+                dayMaxEvents: true
+                
+                
+            });
+    
+            
+            calendar.render();
+        }catch(error){
+            console.error(error);
+        }
         
-        calendar.render();
+        
     });
 </script>
 @endsection

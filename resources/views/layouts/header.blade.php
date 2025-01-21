@@ -261,10 +261,10 @@
 
         
         <!-- Dashboard que aplica a todos -->
-        <a href="{{ asset('calendar/index') }}" class="nav-link @if(request()->routeIs('calendar.index')) active @endif">
+        <a href="{{ route('calendar.index') }}" class="nav-link @if(request()->routeIs('calendar.index')) active @endif">
           <i class="nav-icon fas fa-calendar-alt"></i>
           <p>Calendario Escolar</p>
-      </a>
+        </a>
 
         <li class="nav-item">
           <a href="{{ asset('logout') }}" class="nav-link">

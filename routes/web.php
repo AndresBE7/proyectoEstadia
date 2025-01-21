@@ -167,3 +167,8 @@ Route::group(['middleware' => 'maestro'], function (){
   Route::post('/parent/update_change_password', [UserController::class, 'update_change_password']);
 });
 
+
+//para agregar al calendario una fecha
+Route::post('/add-date', [CalendarController::class, 'AddDate'])->name('add.date');
+Route::delete('/delete-date/{id}', [CalendarController::class, 'deleteDate'])->name('delete.date');
+Route::get('/get-all-date', [CalendarController::class, 'getAllDate'])->name('get.all.date');
