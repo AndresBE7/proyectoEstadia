@@ -130,7 +130,12 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
 Route::group(['middleware' => 'common'], function (){
   Route::get('chat', [ChatController::class, 'chat']);
   Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
+
 });
+
+//para ver los mensaje no leidos (no se que hace esa middleware asi que mejor lo dejo fuero y despues si quieren lo agregan)
+Route::get('/MensajeNoLeido', [ChatController::class, 'seeMessage'])->name('seeMessage');
+
 
 Route::get('calendar', [CalendarController::class, 'school_calendar'])->name('calendar.index');
 

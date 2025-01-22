@@ -158,10 +158,10 @@
                             allDay: arg.allDay
                         });
                         try{
-                           summitEvents(title, arg);
+                           const x = await summitEvents(title, arg);
                            const newEvents = await getEvents();
-                           calendar.addEvents(newEvents);
-                            
+                            calendar.removeAllEvents();
+                            calendar.addEventSource(newEvents);                            
                         }catch(error){
                             calendar.unselect();
                             console.error(error);
@@ -172,7 +172,7 @@
                 },
                 
                 eventClick: function(arg) {
-                    console.log(arg.event.id);
+                    console.log("otro id",arg.event.id);
                     if (confirm('¿Estás seguro de que quieres eliminar este evento?')) {
                         try{
 

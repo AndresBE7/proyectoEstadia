@@ -261,56 +261,99 @@
 @endsection
 @section('content')
 
-<div class="content-wrapped">
-<div class="container">
-<div class="row clearfix">
-    <div class="col-lg-12">
-        <div class="card chat-app">
-            <div id="plist" class="people-list">
-                <div class="input-group">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text"><i class="fa fa-search"></i></span>
-                    </div>
-                    <input type="text" class="form-control" placeholder="Search...">
+<div class="content-wrapper">
+    <section class="content-header">
+        <div class="container-fluid">
+            <div class="row mb-2">
+                <div class="col-sm-6">
+                    <h1>Chat</h1>
                 </div>
-                <ul class="list-unstyled chat-list mt-2 mb-0">
-                    @include('chat._user')
-                </ul>
-            </div>
-            <div class="chat">
-                @if(!empty($getReceiver))
-                    @include('chat._message')
-                @else
-
-                @endif
+                <div class="col-sm-6 text-right">
+                    <!-- Puedes agregar botones adicionales aquí si los necesitas -->
+                </div>
             </div>
         </div>
-    </div>
+    </section>
+
+    <section class="content">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Columna izquierda: Lista de Usuarios -->
+                <div class="col-lg-4 col-md-5">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Lista de Usuarios</h3>
+                        </div>
+                        <div class="card-body">
+                            <!-- Barra de búsqueda -->
+                            <div class="mb-3">
+                                <form method="GET" action="{{ url('chat/search') }}" class="form-inline">
+                                    <div class="input-group">
+                                        <input type="text" name="search" class="form-control" placeholder="Buscar usuario..." value="{{ request()->get('search') }}">
+                                        <div class="input-group-append">
+                                            <button type="submit" class="btn btn-primary">Buscar</button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+
+                            <!-- Lista de usuarios -->
+                            <ul class="list-unstyled chat-list mt-2 mb-0">
+                                @include('chat._user')
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Chat -->
+                <div class="col-lg-8 col-md-7">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Mensajes</h3>
+                        </div>
+                        <div class="card-body chat">
+                            @if(!empty($getReceiver))
+                                @include('chat._message')
+                            @else
+                                <div class="text-center">
+                                    <p class="text-muted">Selecciona un usuario para iniciar una conversación.</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 </div>
-    
+
 @endsection
 
+
+
 @section('script')
-
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script type="text/javascript">
-$('body').delegate('#submit_message', 'submit', function (e) {
-    e.preventDefault();
+document.body.addEventListener('submit', async function (e) {
+    if (e.target.id === 'submit_message') {
+        e.preventDefault();
 
-    $.ajax({
-        type: 'POST',
-        asset: "{{ asset('submit_message') }}",
-        data: new FormData(this),
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-        success: function (data) {
-            console.log('Mensaje enviado con éxito', data);
-        },
-        error: function (data) {
-            console.error('Error al enviar el mensaje', data);
-        },
-    });
+        const form = e.target;
+        const formData = new FormData(form);
+        console.log('Enviando mensaje...', Object.fromEntries(formData.entries()));
+        try {
+            const response = await axios.post("{{ route('submit_message') }}", formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            });
+            console.log('Mensaje enviado con éxito', response.data);
+        } catch (error) {
+            console.log('Error al enviar el mensaje', error);
+        }
+    }
 });
+
 
 
 </script>

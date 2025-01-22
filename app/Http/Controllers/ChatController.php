@@ -26,7 +26,7 @@ class ChatController extends Controller
 }
     
 public function submit_message(Request $request){
-        $receiverId = base64_decode($request->receiver_id);
+        $receiverId = ($request->receiver_id);
         $request->merge(['receiver_id' => $receiverId]);
         
         $request->validate([
@@ -45,5 +45,28 @@ public function submit_message(Request $request){
         $json['succes'] = true;
         echo json_encode($json);
         return response()->json(['success' => true]);    
+    }
+
+
+
+    public function notify_chat(Request $request){
+        $sender_id = Auth::user()->id;
+        $receiver_id = $request->receiver_id;
+        $chat = ChatModel::where('sender_id', $sender_id)->where('receiver_id', $receiver_id)->where('is_read', 0)->get();
+        if(count($chat) > 0){
+            foreach($chat as $c){
+                $c->is_read = 1;
+                $c->save();
+            }
+        }
+        $json['success'] = true;
+        echo json_encode($json);
+    }
+
+
+    public function seeMessage(){
+        $message = ChatModel::with('sender:id,name')
+        ->where('receiver_id', Auth::user()->id)->where('status', 0)->get();
+        return response()->json($message);
     }
 }
