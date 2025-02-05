@@ -80,7 +80,12 @@
                 <!-- Contraseña -->
                 <div class="form-group col-md-6">
                   <label for="password"><i class="fas fa-lock"></i> Contraseña</label>
-                  <input type="password" name="password" class="form-control" placeholder="Contraseña">
+                  <div class="input-group">
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Contraseña">
+                    <div class="input-group-append">
+                      <span class="input-group-text" id="togglePassword"><i class="fas fa-eye"></i></span>
+                    </div>
+                  </div>
                   @error('password')
                   <div class="text-danger">{{ $message }}</div>
                   @enderror
@@ -89,7 +94,12 @@
                 <!-- Confirmación de Contraseña -->
                 <div class="form-group col-md-6">
                   <label for="password_confirmation"><i class="fas fa-lock"></i> Confirmar Contraseña</label>
-                  <input type="password" name="password_confirmation" class="form-control" placeholder="Confirmar Contraseña">
+                  <div class="input-group">
+                    <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" placeholder="Confirmar Contraseña">
+                    <div class="input-group-append">
+                      <span class="input-group-text" id="togglePasswordConfirmation"><i class="fas fa-eye"></i></span>
+                    </div>
+                  </div>
                   @error('password_confirmation')
                   <div class="text-danger">{{ $message }}</div>
                   @enderror
@@ -108,4 +118,31 @@
     </div>
   </section>
 </div>
+
+<script>
+  document.getElementById('togglePassword').addEventListener('click', function () {
+    const passwordField = document.getElementById('password');
+    const icon = this.querySelector('i');
+    if (passwordField.type === 'password') {
+      passwordField.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      passwordField.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  });
+
+  document.getElementById('togglePasswordConfirmation').addEventListener('click', function () {
+    const passwordConfirmationField = document.getElementById('password_confirmation');
+    const icon = this.querySelector('i');
+    if (passwordConfirmationField.type === 'password') {
+      passwordConfirmationField.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      passwordConfirmationField.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  });
+</script>
+
 @endsection

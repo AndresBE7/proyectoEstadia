@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\DocumentModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\File;
 
 class DocumentController extends Controller
 {
@@ -42,22 +44,34 @@ class DocumentController extends Controller
             'descripcion' => 'nullable|string|max:1000',
             'categoria_grado' => 'required|string|max:50',
             'categoria_asignatura' => 'required|string|max:100',
-            'archivo' => 'required|file|mimes:pdf,doc,docx,txt|max:2048', // Archivos válidos
+            'archivo' => 'required|file|mimes:pdf,doc,docx,txt|max:2048',
         ]);
-
-        // Subir archivo al almacenamiento público
-        $archivoPath = $request->file('archivo')->store('documentos', 'public');
-
-        // Guardar datos en la base de datos
-        $save = new DocumentModel;
-        $save->nombre = $request->nombre;
-        $save->descripcion = $request->descripcion;
-        $save->categoria_grado = $request->categoria_grado;
-        $save->categoria_asignatura = $request->categoria_asignatura;
-        $save->archivo = $archivoPath;
-        $save->save();
-
-        return redirect('admin/documents/list')->with('success', 'Documento creado correctamente.');
+    
+        try {
+            // Subir archivo y obtener la ruta
+            if ($request->hasFile('archivo')) {
+                $file = $request->file('archivo');
+                $filename = time() . '_' . $file->getClientOriginalName();
+                $path = $file->storeAs('documentos', $filename, 'public');
+                
+                // Debug para verificar la ruta
+                Log::info('Archivo guardado:', ['ruta' => $path]);
+            }
+    
+            // Guardar en la base de datos
+            $save = new DocumentModel;
+            $save->nombre = $request->nombre;
+            $save->descripcion = $request->descripcion;
+            $save->categoria_grado = $request->categoria_grado;
+            $save->categoria_asignatura = $request->categoria_asignatura;
+            $save->archivo = $path;
+            $save->save();
+    
+            return redirect('admin/documents/list')->with('success', 'Documento creado correctamente.');
+        } catch (\Exception $e) {
+            Log::error('Error al guardar documento: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Error al crear el documento: ' . $e->getMessage());
+        }
     }
 
     // Mostrar formulario de edición
@@ -131,12 +145,30 @@ class DocumentController extends Controller
     
     public function downloadDocument($id)
     {
-        $document = DocumentModel::findOrFail($id);
-        if (Storage::exists($document->archivo)) {
-            return Storage::download($document->archivo);
-        } else {
-            return redirect()->back()->with('error', 'El archivo no existe en el servidor.');
+        try {
+            $document = DocumentModel::findOrFail($id);
+    
+            Log::info('Intentando descargar archivo:', [
+                'ruta_almacenada' => $document->archivo
+            ]);
+    
+            // Verificar si el archivo existe
+            if (!Storage::disk('public')->exists($document->archivo)) {
+                return redirect()->back()->with('error', 'El archivo no existe en el servidor');
+            }
+    
+            // Obtener la ruta física del archivo
+            $filePath = storage_path('app/public/' . $document->archivo);
+    
+            // Obtener el nombre original del archivo
+            $fileName = basename($document->archivo);
+    
+            // Retornar el archivo para descarga
+            return response()->download($filePath, $fileName);
+    
+        } catch (\Exception $e) {
+            Log::error('Error en la descarga: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'No se pudo descargar el archivo: ' . $e->getMessage());
         }
     }
-    
 }

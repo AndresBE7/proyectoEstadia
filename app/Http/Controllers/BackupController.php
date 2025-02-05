@@ -24,18 +24,17 @@ class BackupController extends Controller
 
         return redirect()->back()->with('error', 'El respaldo no existe.');
     }
-
     public function createBackup()
     {
         try {
             $date = now()->format('Y-m-d_H-i-s');
             $backupPath = storage_path("app/backups/backup-{$date}.sql");
-
+    
             $databaseHost = env('DB_HOST');
             $databaseName = env('DB_DATABASE');
             $databaseUser = env('DB_USERNAME');
             $databasePassword = env('DB_PASSWORD');
-
+    
             $command = sprintf(
                 'mysqldump -h %s -u %s -p%s %s > %s',
                 escapeshellarg($databaseHost),
@@ -44,13 +43,17 @@ class BackupController extends Controller
                 escapeshellarg($databaseName),
                 escapeshellarg($backupPath)
             );
-
+    
             exec($command, $output, $result);
-
+    
+            // Log the command output and result
+            Log::info('Backup Command Output: ', $output);
+            Log::info('Backup Command Result: ' . $result);
+    
             if ($result === 0) {
                 return redirect()->route('admin.backup.index')->with('success', 'Respaldo creado exitosamente.');
             }
-
+    
             return redirect()->route('admin.backup.index')->with('error', 'Error al crear el respaldo.');
         } catch (\Exception $e) {
             Log::error('Error al crear respaldo: ' . $e->getMessage());

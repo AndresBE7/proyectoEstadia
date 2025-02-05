@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\ClassModel;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\WelcomeStudentNotification;
 
 class StudentController extends Controller
 {
@@ -30,7 +31,8 @@ class StudentController extends Controller
         return view('admin.student.list', compact('getRecord'));
     }
 
-    public function insert(Request $request) {
+    public function insert(Request $request)
+    {
         // Obtener los registros de las clases con los usuarios relacionados
         $getClass = ClassModel::getRecord();
         // Pasar los registros de las clases a la vista
@@ -51,6 +53,9 @@ class StudentController extends Controller
             'password' => 'required|string|min:8|confirmed', // Confirmación de contraseña
         ]);
         
+        // Generar la contraseña en texto claro
+        $plainPassword = $request->password;
+    
         // Crear un nuevo estudiante
         $student = new User;
         $student->name = trim($request->name);
@@ -62,10 +67,13 @@ class StudentController extends Controller
         $student->grado = trim($request->grado);
         $student->medio_contacto = trim($request->medio_contacto);
         $student->email = trim($request->email);
-        $student->password = Hash::make($request->password); // Encriptar la contraseña
+        $student->password = Hash::make($plainPassword); // Encriptar la contraseña
         $student->user_type = 3; // Asignar el tipo de usuario (3 para estudiante)
         $student->save(); // Guardar el estudiante en la base de datos
-        
+    
+        // Enviar la notificación con la contraseña en texto plano
+        $student->notify(new WelcomeStudentNotification($student, $plainPassword));
+    
         // Redirigir con un mensaje de éxito
         return redirect()->route('admin.student.list')->with('success', 'Estudiante registrado correctamente');
     }
@@ -80,9 +88,9 @@ class StudentController extends Controller
     // Método para mostrar el formulario de edición
     public function edit($id)
     {
-        $student = User::findOrFail($id); // Asegúrate de que $student esté bien cargado
+        $student = User::where('id', $id)->where('user_type', 3)->where('is_delete', 0)->firstOrFail();
         return view('admin.student.edit', compact('student'));
-    }
+    }    
     
     // Método para actualizar un estudiante
     public function update(Request $request, $id)

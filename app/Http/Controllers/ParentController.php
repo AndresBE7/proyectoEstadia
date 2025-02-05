@@ -6,7 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-
+use App\Notifications\WelcomeParentNotification;
+use Illuminate\Support\Facades\Notification;
 
 class ParentController extends Controller
 {
@@ -51,21 +52,27 @@ class ParentController extends Controller
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed', // Confirmación de la contraseña
         ]);
-
+    
+        // Generar la contraseña en texto claro
+        $plainPassword = $request->password;
+    
         // Crear un nuevo registro de tutor en la base de datos
         $user = new User();
         $user->name = $request->name;
         $user->domicilio = $request->domicilio;
         $user->medio_contacto = $request->medio_contacto;
         $user->email = $request->email;
-        $user->password = Hash::make($request->password); // Hashear la contraseña
-        // Establecer el tipo de usuario como tutor (user_type = 4)
-        $user->user_type = 4;
-        // Guardar el nuevo tutor en la base de datos
-        $user->save();
+        $user->password = Hash::make($plainPassword); // Hashear la contraseña
+        $user->user_type = 4; // Establecer el tipo de usuario como tutor (user_type = 4)
+        $user->save(); // Guardar el nuevo tutor en la base de datos
+    
+        // Enviar la notificación con la contraseña en texto plano
+        $user->notify(new WelcomeParentNotification($user, $plainPassword));
+    
         // Redirigir al listado de tutores con un mensaje de éxito
         return redirect()->route('admin.parent.list')->with('success', 'Tutor registrado correctamente');
     }
+    
 
     public function edit($id){
         // Buscar al tutor por su ID

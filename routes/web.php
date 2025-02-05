@@ -130,10 +130,20 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
 Route::group(['middleware' => 'common'], function (){
   Route::get('chat', [ChatController::class, 'chat']);
   Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
+
 });
 
-Route::get('calendar', [CalendarController::class, 'school_calendar'])->name('calendar.index');
+//para ver los mensaje no leidos (no se que hace esa middleware asi que mejor lo dejo fuero y despues si quieren lo agregan)
+Route::get('/MensajeNoLeido', [ChatController::class, 'seeMessage'])->name('seeMessage');
 
+Route::group(['middleware' => ['web', 'auth']], function () {
+  Route::prefix('calendar')->name('calendar.')->group(function () {
+      Route::get('/', [CalendarController::class, 'school_calendar'])->name('index');
+      Route::post('/event', [CalendarController::class, 'store_event'])->name('store_event');
+      Route::delete('/event/{id}', [CalendarController::class, 'delete_event'])
+          ->name('calendar.delete_event');
+  });
+});
 
 //Enlace de ruta para ingresar a dashboard de maestro 
 Route::group(['middleware' => 'maestro'], function (){
@@ -166,4 +176,3 @@ Route::group(['middleware' => 'maestro'], function (){
   Route::get('/parent/change_password', [UserController::class, 'change_password']);
   Route::post('/parent/update_change_password', [UserController::class, 'update_change_password']);
 });
-

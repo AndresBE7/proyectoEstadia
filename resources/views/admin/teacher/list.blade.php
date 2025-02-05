@@ -22,15 +22,15 @@
                     @include('_messages')
 
                     @if(session()->has('error'))
-                        <div class="alert alert-danger" role="alert">
+                        <div class="alert alert-danger mb-4" role="alert">
                             {{ session()->get('error') }}
                         </div>
                     @endif
 
                     <!-- Formulario de búsqueda -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Buscar Profesor</h3>
+                    <div class="card mb-4 shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="card-title">Buscar Profesores</h3>
                         </div>
                         <div class="card-body">
                             <form method="GET" action="{{ url('admin/teacher/list') }}" class="form-inline">
@@ -46,51 +46,57 @@
                     </div>
 
                     <!-- Tabla de Profesores -->
-                    <div class="card">
-                        <div class="card-header">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
                             <h3 class="card-title">Profesores</h3>
                         </div>
                         <div class="card-body p-0">
-                            <table class="table table-striped">
-                                <thead>
+                            <table class="table table-bordered table-hover">
+                                <thead class="thead-dark">
                                     <tr>
                                         <th>ID</th>
                                         <th>Nombre</th>
-                                        <th>Correo Electrónico</th>
+                                        <th>Correo</th>
                                         <th>CURP</th>
                                         <th>RFC</th>
-                                        <th>Materia a Impartir</th>
-                                        <th>Medio de Contacto</th>
-                                        <th>Acciones</th>
+                                        <th>Materia</th>
+                                        <th>Contacto</th>
+                                        <th>Acción</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @if($teachers->isEmpty())
+                                    @forelse ($teachers as $teacher)
                                     <tr>
-                                        <td colspan="8" class="text-center">No se encontraron profesores.</td>
-                                    </tr>
-                                    @else
-                                        @foreach($teachers as $teacher)
-                                        <tr>
-                                            <td>{{ $teacher->id }}</td>
-                                            <td>{{ $teacher->name }}</td>
-                                            <td>{{ $teacher->email }}</td>
-                                            <td>{{ $teacher->curp }}</td>
-                                            <td>{{ $teacher->rfc }}</td>
-                                            <td>{{ $teacher->asignatura_impartir }}</td>
-                                            <td>{{ $teacher->medio_contacto }}</td>
-                                            <td>
-                                                <a href="{{ route('admin.teacher.edit', $teacher->id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i> Editar</a>
+                                        <td>{{ $teacher->id }}</td>
+                                        <td>{{ $teacher->name }}</td>
+                                        <td>{{ $teacher->email }}</td>
+                                        <td>{{ $teacher->curp }}</td>
+                                        <td>{{ $teacher->rfc }}</td>
+                                        <td>{{ $teacher->asignatura_impartir }}</td>
+                                        <td>{{ $teacher->medio_contacto }}</td>
+                                        <td>
+                                            <div class="btn-group" role="group">
+                                                <a href="{{ route('admin.teacher.edit', $teacher->id) }}" class="btn btn-sm btn-success">
+                                                    <i class="fas fa-edit"></i> Modificar
+                                                </a>
                                                 <form action="{{ route('admin.teacher.delete', $teacher->id) }}" method="POST" style="display:inline;">
                                                     @csrf
                                                     @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar este profesor?')"><i class="fas fa-trash-alt"></i> Eliminar</button>
+                                                    <button type="submit" class="btn btn-sm btn-warning" onclick="return confirm('¿Está seguro de que desea eliminar este profesor?')">
+                                                        <i class="fas fa-trash-alt"></i> Dar de Baja
+                                                    </button>
                                                 </form>
-                                                <a href="{{ asset('chat?receiver_id=' . base64_encode($teacher->id)) }}" class="btn btn-sm btn-success"><i class="fas fa-comments"></i> Enviar mensaje</a>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    @endif
+                                                <a href="{{ asset('chat?receiver_id=' . base64_encode($teacher->id)) }}" class="btn btn-sm btn-warning">
+                                                    <i class="fas fa-comments"></i> Enviar Mensaje
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    @empty
+                                    <tr>
+                                        <td colspan="8" class="text-center">No se encontraron resultados</td>
+                                    </tr>
+                                    @endforelse
                                 </tbody>
                             </table>
                         </div>
@@ -101,5 +107,3 @@
     </section>
 </div>
 @endsection
-
-

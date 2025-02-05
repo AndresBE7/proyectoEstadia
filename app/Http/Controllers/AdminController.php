@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
+use App\Notifications\WelcomeUserNotification;
+use Illuminate\Support\Facades\Notification;
+
 
 class AdminController extends Controller
 {
@@ -50,16 +53,25 @@ class AdminController extends Controller
                 'regex:/[@$!%*?&#]/', // Al menos un carácter especial
             ],
         ], $this->messages());
-
+    
+        // Generar una contraseña en texto claro
+        $plainPassword = $request->password;
+    
+        // Crear el usuario
         $user = new User;
         $user->name = trim($request->name);
         $user->email = trim($request->email);
-        $user->password = Hash::make($request->password);
-        $user->user_type = 1;
+        $user->password = Hash::make($plainPassword); // Guardar la contraseña cifrada
+        $user->user_type = 1; // Administrador
         $user->save();
-
+    
+        // Enviar la notificación con la contraseña en texto plano
+        $user->notify(new WelcomeUserNotification($user, $plainPassword));
+    
         return redirect('admin/admin/list')->with('success', 'Administrador añadido correctamente');
     }
+    
+    
 
     public function edit($id)
     {

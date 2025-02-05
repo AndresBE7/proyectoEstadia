@@ -69,7 +69,7 @@ class Kernel extends HttpKernel
         'alumno' => \App\Http\Middleware\AlumnoMiddleware::class,
         'tutor' => \App\Http\Middleware\TutorMiddleware::class,
         'common' => \App\Http\Middleware\CommonMiddleware::class,
-        'checkusertype' => \App\Http\Middleware\CheckUserType::class,
+        'check.user.type' => \App\Http\Middleware\CheckUserType::class,
 
     ];
 }

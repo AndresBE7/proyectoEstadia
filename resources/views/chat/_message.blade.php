@@ -8,9 +8,10 @@
 
 <div class="chat-message clearfix">
     <div class="input-group mb-0">
-    <form action="{{ asset('submit_message') }}" id="submit_message" method="POST" class="mb-0">
+    <form action="{{ route('submit_message') }}" id="submit_message" method="POST" class="mb-0">
         @csrf
-        <input type="hidden" name="receiver_id" value="{{ base64_encode($getReceiver->id ?? '') }}">
+        <input type="hidden" name="receiver_id" value="{{ $getReceiver->id }}">
+        
         <textarea name="message" class="form-control" placeholder="Escribe tu mensaje..." rows="3"></textarea>
         <div class="row">
             <div class="col-md-6"> </div>

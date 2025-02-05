@@ -10,6 +10,12 @@ class ChatModel extends Model
 {
     use HasFactory;
     protected $table = 'chat'; 
+    protected $fillable = [
+        'sender_id',
+        'receiver_id',
+        'message',
+        'created_date',
+    ];
 
     public function sender()
     {
