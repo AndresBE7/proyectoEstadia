@@ -1,111 +1,75 @@
 @extends('layouts.app')
 @section('content')
-
-<div class="content-wrapper">
+  <div class="content-wrapper">
     <section class="content-header">
-        <div class="container-fluid">
-            <div class="row mb-2">
-                <div class="col-sm-6">
-                    <h1>Lista de grupos</h1>
-                </div>
-                <div class="col-sm-6 text-right">
-                    <a href="{{ asset('admin/class/add') }}" class="btn btn-primary" style="margin-right: 10px;">Agregar grupo</a>
-                </div>
-            </div>
+      <div class="container-fluid">
+        <div class="row mb-2">
+          <div class="col-sm-6">
+            <h1>Lista de Grupos</h1>
+          </div>
         </div>
+      </div>
     </section>
 
     <section class="content">
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-md-12">
-                    @include('_messages')
-
-                    <!-- Mensaje de error si no se encuentran resultados -->
-                    @if(session()->has('error'))
-                        <div class="alert alert-danger" role="alert">
-                            {{ session()->get('error') }}
-                        </div>
-                    @endif
-
-                    <!-- Formulario de búsqueda -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Buscar Grupo</h3>
-                        </div>
-                        <div class="card-body">
-                            <form method="GET" action="{{ url('admin/class/list') }}" class="form-inline">
-                                <div class="form-group mx-sm-3 mb-2">
-                                    <input type="text" name="search" class="form-control" 
-                                        placeholder="Buscar por nombre o ID" 
-                                        value="{{ request()->get('search') }}">
-                                </div>
-                                <button type="submit" class="btn btn-primary mb-2">Buscar</button>
-                                <a href="{{ url('admin/class/list') }}" class="btn btn-secondary mb-2 ml-2">Restablecer</a>
-                            </form>
-                        </div>
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <a href="{{ url('admin/class/add') }}" class="btn btn-primary">Añadir Nuevo Grupo</a>
+              </div>
+              <div class="card-body p-0">
+                <!-- Búsqueda -->
+                <div class="p-3">
+                  <form action="" method="GET">
+                    <div class="input-group">
+                      <input type="text" name="search" value="{{ Request::get('search') }}" class="form-control" placeholder="Buscar...">
+                      <div class="input-group-append">
+                        <button class="btn btn-primary" type="submit">Buscar</button>
+                      </div>
                     </div>
-
-                    <!-- Tabla de administradores -->
-                    <div class="card">
-                        <div class="card-header">
-                            <h3 class="card-title">Grupos</h3>
-                        </div>
-                        <div class="card-body p-0">
-                            <table class="table table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>ID</th>
-                                        <th>Grado</th>
-                                        <th>Grupo </th>
-                                        <th>Horario</th>
-                                        <th>Nivel Academico</th>
-                                        <th>Periodo</th>
-                                        <th>Fecha de creación</th>
-                                        <th>Acción</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @if($getRecord->isEmpty())
-                                        <tr>
-                                            <td colspan="8" class="text-center">No se encontraron grupos.</td>
-                                        </tr>
-                                    @else
-                                        @foreach($getRecord as $value)
-                                        <tr>
-                                            <!-- ID del Grupo -->
-                                            <td>{{ $value->id }}</td>
-                                            <!-- Nombre del Grupo -->
-                                            <td>{{ $value->nombre }}</td>
-                                            <!-- Grado -->
-                                            <td>{{ $value->grado }}</td>
-                                            <!-- Horario -->
-                                            <td>{{ $value->horario }}</td>
-                                            <!-- Nivel Académico -->
-                                            <td>{{ $value->nivel_academico }}</td>
-                                            <!-- Periodo Escolar -->
-                                            <td>{{ $value->periodo_escolar }}</td>
-                                            <!-- Fecha de Creación -->
-                                            <td>{{ $value->created_at }}</td>
-                                            <!-- Acciones -->
-                                            <td>
-                                                <a href="{{ asset('admin/class/edit/' . $value->id) }}" class="btn btn-sm btn-success">Modificar</a>
-                                                <a href="{{ asset('admin/class/delete/' . $value->id) }}" class="btn btn-sm btn-warning">Dar de baja</a>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    @endif
-                                </tbody>
-                                
-                                
-                                
-                            </table>
-                            <div style="padding: 10px; float:right"></div>
-                        </div>
-                    </div>
+                  </form>
                 </div>
+
+                <!-- Tabla de Grupos -->
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Nombre</th>
+                      <th>Grado</th>
+                      <th>Horario</th>
+                      <th>Nivel Académico</th>
+                      <th>Periodo</th>
+                      <th>Alumnos</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @foreach($getRecord as $value)
+                      <tr>
+                        <td>{{ $value->id }}</td>
+                        <td>{{ $value->nombre }}</td>
+                        <td>{{ $value->grado }}</td>
+                        <td>{{ $value->horario }}</td>
+                        <td>{{ $value->nivel_academico }}</td>
+                        <td>{{ $value->periodo_escolar }}</td>
+                        <td>{{ $value->students->count() }}</td>
+                        <td>
+                          <a href="{{ url('admin/class/edit/'.$value->id) }}" class="btn btn-primary btn-sm">Editar</a>
+                          <a href="{{ url('admin/class/delete/'.$value->id) }}" class="btn btn-danger btn-sm" onclick="return confirm('¿Estás seguro de querer eliminar este grupo?')">Eliminar</a>
+                          <a href="{{ url('admin/class/students/'.$value->id) }}" class="btn btn-info btn-sm">Ver Alumnos</a>
+                        </td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
             </div>
+          </div>
         </div>
+      </div>
     </section>
-</div>
+  </div>
 @endsection

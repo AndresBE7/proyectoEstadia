@@ -51,10 +51,12 @@
                 <!-- Campo Nivel Académico -->
                 <div class="form-group">
                   <label for="nivel_academico">Nivel Académico</label>
-                  <input type="text" name="nivel_academico" class="form-control" value="{{ old('nivel_academico') }}" placeholder="Ingresa el nivel académico (por ejemplo, Primaria, Secundaria)">
-                  @if($errors->has('nivel_academico'))
-                    <div style="color: red;">{{ $errors->first('nivel_academico') }}</div>
-                  @endif
+                  <select name="nivel_academico" class="form-control">
+                    <option value="Preescolar" {{ isset($getRecord) && $getRecord->nivel_academico == 'Preescolar' ? 'selected' : '' }}>Preescolar</option>
+                    <option value="Primaria" {{ isset($getRecord) && $getRecord->nivel_academico == 'Primaria' ? 'selected' : '' }}>Primaria</option>
+                    <option value="Secundaria" {{ isset($getRecord) && $getRecord->nivel_academico == 'Secundaria' ? 'selected' : '' }}>Secundaria</option>
+                </select>
+                
                 </div>
 
                 <!-- Campo Grupos -->

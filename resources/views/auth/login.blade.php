@@ -6,75 +6,172 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Sistema Integral Colegio Vida</title>
 
-  <!-- Google Font: Source Sans Pro -->
-  <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback" rel="stylesheet">
+  <!-- Google Font: Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=fallback" rel="stylesheet">
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="../../plugins/fontawesome-free/css/all.min.css">
-  <!-- icheck bootstrap -->
-  <link rel="stylesheet" href="../../plugins/icheck-bootstrap/icheck-bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <!-- Theme style -->
   <link rel="stylesheet" href="../../dist/css/adminlte.min.css">
   <!-- Custom Styles -->
   <style>
+    :root {
+      --primary-color: #4F46E5;
+      --primary-hover: #4338CA;
+      --bg-color: #F9FAFB;
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    }
+
     body {
-      background-color: #f4f6f9;
-      font-family: 'Source Sans Pro', sans-serif;
+      background-color: var(--bg-color);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .login-box {
-      width: 400px;
-      margin: 50px auto;
-    }
-    .card-header {
-      background-color: #007bff;
-      color: #fff;
-    }
-    .card-body {
-      border-radius: 10px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
-      padding: 30px;
-    }
-    .btn-primary {
-      background-color: #007bff;
-      border-color: #007bff;
       width: 100%;
-      padding: 10px;
-      font-size: 18px;
-      border-radius: 5px;
+      max-width: 440px;
+      margin: 20px;
     }
-    .btn-primary:hover {
-      background-color: #0056b3;
-      border-color: #0056b3;
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      border: none;
+      box-shadow: var(--card-shadow);
     }
-    .input-group-text {
-      background-color: #007bff;
-      color: white;
+
+    .card-header {
+      background-color: white;
+      border-bottom: none;
+      padding: 2rem 2rem 1rem;
     }
-    .alert-danger {
-      border-radius: 5px;
-      margin-bottom: 20px;
+
+    .card-header .h1 {
+      color: var(--primary-color);
+      font-weight: 700;
+      text-decoration: none;
+      font-size: 1.875rem;
     }
-    .icheck-primary input[type="checkbox"]:checked ~ .icheck-label {
-      color: #007bff;
+
+    .card-body {
+      padding: 2rem;
     }
+
     .login-box-msg {
-      font-size: 22px;
-      color: #007bff;
-      margin-bottom: 30px;
+      font-size: 1.25rem;
+      color: #111827;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-control {
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      border: 1px solid #D1D5DB;
+      font-size: 1rem;
+      width: 100%;
+      transition: all 0.2s;
+    }
+
+    .form-control:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+
+    .input-group-append {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+    }
+
+    .input-group-text {
+      background: none;
+      border: none;
+      color: #6B7280;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .input-group-text:hover {
+      color: var(--primary-color);
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      border-radius: 0.5rem;
+      transition: all 0.2s;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      border-color: var(--primary-hover);
+      transform: translateY(-1px);
+    }
+
+    .alert-danger {
+      border-radius: 0.5rem;
+      margin-bottom: 1.5rem;
+      background-color: #FEE2E2;
+      border-color: #FEE2E2;
+      color: #991B1B;
+    }
+
+    .remember-me {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .remember-me input[type="checkbox"] {
+      width: 1rem;
+      height: 1rem;
+      border-radius: 0.25rem;
+      border: 1px solid #D1D5DB;
+    }
+
+    .forgot-password {
+      color: var(--primary-color);
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .forgot-password:hover {
+      color: var(--primary-hover);
+      text-decoration: underline;
+    }
+
+    @media (max-width: 480px) {
+      .card-body {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 
-<body class="hold-transition login-page">
-
+<body>
   <div class="login-box">
-    <div class="card card-outline card-primary">
+    <div class="card">
       <div class="card-header text-center">
-        <a href="../../index2.html" class="h1"><b>Colegio</b> Vida</a>
+         <h1>Colegio <b>Vida</b</h1>
       </div>
       <div class="card-body">
         <p class="login-box-msg">Inicia Sesión</p>
 
-        <!-- Mostrar error de credenciales -->
         @if ($errors->has('error'))
           <div class="alert alert-danger">
             {{ $errors->first('error') }}
@@ -84,55 +181,55 @@
         <form action="{{ asset('login') }}" method="post">
           {{ csrf_field() }}
 
-          <!-- Campo de Email -->
-          <div class="input-group mb-3">
-            <input type="email" class="form-control" required name="email" placeholder="Email" value="{{ old('email') }}">
+          <div class="input-group">
+            <input type="email" class="form-control" required name="email" placeholder="Correo electrónico" value="{{ old('email') }}">
             <div class="input-group-append">
               <div class="input-group-text">
-                <span class="fas fa-envelope"></span>
+                <i class="fas fa-envelope"></i>
               </div>
             </div>
           </div>
 
-          <!-- Campo de Contraseña -->
-          <div class="input-group mb-3">
-            <input type="password" class="form-control" name="password" placeholder="Password">
+          <div class="input-group">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Contraseña">
             <div class="input-group-append">
-              <div class="input-group-text">
-                <span class="fas fa-lock"></span>
+              <div class="input-group-text" onclick="togglePassword()">
+                <i class="fas fa-eye" id="togglePassword"></i>
               </div>
             </div>
           </div>
 
-          <!-- Recuerda el Usuario -->
-          <div class="row">
-            <div class="col-8">
-              <div class="icheck-primary">
-                <input type="checkbox" id="remember" name="remember">
-                <label for="remember">
-                  Recuerdame
-                </label>
-              </div>
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="remember-me">
+              <input type="checkbox" id="remember" name="remember">
+              <label for="remember">Recuérdame</label>
             </div>
-            <div class="col-4">
-              <button type="submit" class="btn btn-primary btn-block">Iniciar sesión</button>
-            </div>
+            <a href="{{ asset('forgot-password') }}" class="forgot-password">¿Olvidaste tu contraseña?</a>
           </div>
+
+          <button type="submit" class="btn btn-primary w-100">Iniciar sesión</button>
         </form>
-
-        <p class="mb-1">
-          <a href="{{ asset('forgot-password') }}">Olvidé mi contraseña</a>
-        </p>
       </div>
     </div>
   </div>
 
-  <!-- jQuery -->
-  <script src="../../plugins/jquery/jquery.min.js"></script>
-  <!-- Bootstrap 4 -->
-  <script src="../../plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <!-- AdminLTE App -->
-  <script src="../../dist/js/adminlte.min.js"></script>
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const toggleIcon = document.getElementById('togglePassword');
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        toggleIcon.classList.remove('fa-eye');
+        toggleIcon.classList.add('fa-eye-slash');
+      } else {
+        passwordInput.type = 'password';
+        toggleIcon.classList.remove('fa-eye-slash');
+        toggleIcon.classList.add('fa-eye');
+      }
+    }
+  </script>
 </body>
-
 </html>

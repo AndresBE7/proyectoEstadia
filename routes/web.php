@@ -13,6 +13,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -76,6 +77,7 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
   Route::get('/admin/class/edit/{id}', [ClassController::class, 'edit']);
   Route::post('/admin/class/update/{id}', [ClassController::class, 'update']);
   Route::get('/admin/class/delete/{id}', [ClassController::class, 'delete']);
+  Route::get('admin/class/students/{id}', [ClassController::class, 'students']);
 
 
   //Enlance de rutas para las materias
@@ -123,7 +125,36 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
   Route::post('/admin/backup/restore', [BackupController::class, 'restoreBackup'])->name('backup.restore');
   Route::get('/admin/backup/index', [BackupController::class, 'index'])->name('admin.backup.index');
   Route::get('/admin/backup/download/{filename}', [BackupController::class, 'download'])->name('admin.backup.download');
+
+
+    Route::get('admin/surveys/index', [SurveyController::class, 'index']);
+    Route::get('/admin/surveys/create', [SurveyController::class, 'create'])->name('admin.surveys.create');
+    Route::post('/admin/surveys', [SurveyController::class, 'store'])->name('admin.surveys.store');
+    Route::post('/admin/surveys/{id}/activate', [SurveyController::class, 'activate'])->name('admin.surveys.activate');
+    Route::delete('/admin/surveys/{id}', [SurveyController::class, 'destroy'])->name('admin.surveys.destroy');
+    Route::post('admin/surveys/{survey}/activate', [SurveyController::class, 'activate'])->name('admin.surveys.activate');
+    Route::get('/admin/surveys/{survey}/results/user/{user}', 'App\Http\Controllers\SurveyController@userResponses')->name('admin.surveys.user-responses');
+
 });
+
+Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
+  Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
+  Route::get('/surveys/create', [SurveyController::class, 'create'])->name('surveys.create');
+  Route::post('/surveys', [SurveyController::class, 'store'])->name('surveys.store');
+  Route::get('/surveys/{survey}/edit', [SurveyController::class, 'edit'])->name('surveys.edit');
+  Route::put('/surveys/{survey}', [SurveyController::class, 'update'])->name('surveys.update');
+  Route::delete('/surveys/{survey}', [SurveyController::class, 'destroy'])->name('surveys.destroy');
+  Route::post('/surveys/{survey}/activate', [SurveyController::class, 'activate'])->name('surveys.activate');
+  Route::get('/surveys/{survey}/results', [SurveyController::class, 'results'])->name('surveys.results');
+});
+
+// Mostrar el formulario para responder la encuesta
+Route::get('/surveys/{survey}/respond', [SurveyController::class, 'showRespondForm'])
+    ->name('surveys.respond');
+
+// Procesar las respuestas
+Route::post('/surveys/{survey}/submit', [SurveyController::class, 'submit'])
+    ->name('surveys.submit');
 
 
 //Enlace de ruta para ingresar a chat
@@ -132,6 +163,9 @@ Route::group(['middleware' => 'common'], function (){
   Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
 
 });
+
+Route::post('/submit_message', [ChatController::class, 'submit_message'])
+    ->name('submit_message');
 
 //para ver los mensaje no leidos (no se que hace esa middleware asi que mejor lo dejo fuero y despues si quieren lo agregan)
 Route::get('/MensajeNoLeido', [ChatController::class, 'seeMessage'])->name('seeMessage');
@@ -159,10 +193,17 @@ Route::group(['middleware' => 'maestro'], function (){
   Route::group(['middleware' => 'alumno'], function (){
   Route::get('/student/dashboard', [DashboardController::class, 'dashboard']);
 
+  Route::get('/student/surveys/{survey}', [SurveyController::class, 'show'])->name('students.surveys.show');
+  Route::post('/student/surveys/{survey}/submit', [SurveyController::class, 'submitResponse'])->name('students.surveys.submit');
+
   
   //Enlaces para cambiar la contraseña 
   Route::get('/student/change_password', [UserController::class, 'change_password']);
   Route::post('/student/update_change_password', [UserController::class, 'update_change_password']);
+
+  Route::group(['middleware' => 'alumno'], function () {
+
+});
 });
 
 //Enlace de ruta para ingresar a dashboard de tutor 

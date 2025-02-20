@@ -85,15 +85,21 @@
                   @enderror
                 </div>
 
-                <!-- Nivel Académico -->
-                <div class="form-group col-md-6">
-                  <label for="nivel_academico"><i class="fas fa-book"></i> Nivel Académico</label>
-                  <input type="text" name="nivel_academico" class="form-control" value="{{ old('nivel_academico', $student->nivel_academico) }}" placeholder="Ingresa el nivel académico">
-                  @error('nivel_academico')
-                  <div class="text-danger">{{ $message }}</div>
-                  @enderror
-                </div>
+              <!-- Nivel Académico -->
+              <div class="form-group col-md-6">
+                <label for="nivel_academico"><i class="fas fa-book"></i> Nivel Académico</label>
+                <select name="nivel_academico" class="form-control">
+                  <option value="">Selecciona un nivel</option>
+                  <option value="Preescolar" {{ old('nivel_academico', $student->nivel_academico) == 'Preescolar' ? 'selected' : '' }}>Preescolar</option>
+                  <option value="Primaria" {{ old('nivel_academico', $student->nivel_academico) == 'Primaria' ? 'selected' : '' }}>Primaria</option>
+                  <option value="Secundaria" {{ old('nivel_academico', $student->nivel_academico) == 'Secundaria' ? 'selected' : '' }}>Secundaria</option>
+                </select>
+                @error('nivel_academico')
+                <div class="text-danger">{{ $message }}</div>
+                @enderror
               </div>
+            </div>
+
 
               <div class="row">
                 <!-- Grado -->

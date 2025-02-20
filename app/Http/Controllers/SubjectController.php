@@ -31,13 +31,19 @@ class SubjectController extends Controller
 
     public function insert(Request $request){
         $request->validate([
-            'nombre' => 'required|string|max:255',
-            'descripcion' => 'nullable|string|max:1000', // Campo opcional
+            'nombre' => 'required|string|max:255|unique:subject,nombre', // Validación única
+            'descripcion' => 'nullable|string|max:1000',
             'nivel_academico' => 'required|string|max:255',
-            'grupos' => 'nullable|string|max:255', 
+            'grupos' => 'nullable|string|max:255',
         ]);
     
-        $save = new SubjectModel; // Modelo asociado a la tabla "subject"
+        // Verificar si ya existe un grupo con el mismo nombre
+        $existingGroup = SubjectModel::where('nombre', $request->nombre)->first();
+        if ($existingGroup) {
+            return redirect()->back()->with('error', 'El nombre del grupo ya está en uso.')->withInput();
+        }
+    
+        $save = new SubjectModel;
         $save->nombre = $request->nombre;
         $save->descripcion = $request->descripcion;
         $save->nivel_academico = $request->nivel_academico;
@@ -58,33 +64,39 @@ class SubjectController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    // Validación de los datos del formulario
-    $request->validate([
-        'nombre' => 'required|string|max:255',
-        'descripcion' => 'nullable|string|max:1000',
-        'nivel_academico' => 'required|string|max:255',
-        'grupos' => 'nullable|string|max:255',
-    ]);
-
-    // Buscar el registro de la materia a editar
-    $subject = SubjectModel::find($id); // Buscar por ID
-
-    if (!$subject) {
-        return redirect('admin/subject/list')->with('error', 'Materia no encontrada');
-    }
-
-    // Actualizar los campos con los nuevos datos del formulario
-    $subject->nombre = $request->nombre;
-    $subject->descripcion = $request->descripcion;
-    $subject->nivel_academico = $request->nivel_academico;
-    $subject->grupos = $request->grupos;
-
-    // Guardar los cambios
-    $subject->save();
-
-    // Redirigir a la lista con mensaje de éxito
-    return redirect('admin/subject/list')->with('success', 'Materia actualizada correctamente');
+    {
+        // Validación de los datos del formulario
+        $request->validate([
+            'nombre' => 'required|string|max:255|unique:subject,nombre,' . $id, // Validación única excluyendo el registro actual
+            'descripcion' => 'nullable|string|max:1000',
+            'nivel_academico' => 'required|string|max:255',
+            'grupos' => 'nullable|string|max:255',
+        ]);
+    
+        // Buscar el registro de la materia a editar
+        $subject = SubjectModel::find($id);
+    
+        if (!$subject) {
+            return redirect('admin/subject/list')->with('error', 'Materia no encontrada');
+        }
+    
+        // Verificar si ya existe otro grupo con el mismo nombre (excluyendo el actual)
+        $existingGroup = SubjectModel::where('nombre', $request->nombre)->where('id', '!=', $id)->first();
+        if ($existingGroup) {
+            return redirect()->back()->with('error', 'El nombre del grupo ya está en uso.')->withInput();
+        }
+    
+        // Actualizar los campos con los nuevos datos del formulario
+        $subject->nombre = $request->nombre;
+        $subject->descripcion = $request->descripcion;
+        $subject->nivel_academico = $request->nivel_academico;
+        $subject->grupos = $request->grupos;
+    
+        // Guardar los cambios
+        $subject->save();
+    
+        // Redirigir a la lista con mensaje de éxito
+        return redirect('admin/subject/list')->with('success', 'Materia actualizada correctamente');
     }
 
     public function delete($id)

@@ -177,6 +177,14 @@
       </li>
 
       <li class="nav-item">
+        <a href="{{ asset('admin/surveys/index') }}" class="nav-link @if(request()->segment(1)=='surveyss') active @endif">
+            <i class="nav-icon fas fa-microphone"></i>
+            <p>Entrevistas</p>
+        </a>
+    </li>
+    
+
+      <li class="nav-item">
         <a href="{{ asset('admin/backup/index') }}" class="nav-link @if(request()->segment(1)=='backup') active @endif">
           <i class="nav-icon fas fa-database"></i>
           <p>Base de datos</p>
@@ -218,6 +226,12 @@
             <p>
               Inicio
             </p>
+          </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ asset('student/surveys/show') }}" class="nav-link @if(request()->segment(1)=='surveyss') active @endif">
+            <i class="nav-icon fas fa-file-alt"></i>
+            <p>Encuestas</p>
           </a>
         </li>
 

@@ -60,18 +60,37 @@
                 <!-- Campo Nivel Académico -->
                 <div class="form-group">
                   <label for="nivel_academico">Nivel Académico</label>
-                  <input type="text" name="nivel_academico" class="form-control" value="{{ old('nivel_academico') }}" placeholder="Ingresa el nivel académico (por ejemplo, Primaria, Secundaria)">
+                  <select name="nivel_academico" class="form-control">
+                    <option value="">Selecciona un nivel académico</option>
+                    <option value="Preescolar" {{ old('nivel_academico') == 'Preescolar' ? 'selected' : '' }}>Preescolar</option>
+                    <option value="Primaria" {{ old('nivel_academico') == 'Primaria' ? 'selected' : '' }}>Primaria</option>
+                    <option value="Secundaria" {{ old('nivel_academico') == 'Secundaria' ? 'selected' : '' }}>Secundaria</option>
+                  </select>
                   @if($errors->has('nivel_academico'))
                     <div style="color: red;">{{ $errors->first('nivel_academico') }}</div>
                   @endif
                 </div>
 
+
                 <!-- Campo Periodo -->
                 <div class="form-group">
                   <label for="periodo">Periodo</label>
-                  <input type="text" name="periodo" class="form-control" value="{{ old('periodo') }}" placeholder="Ingresa el periodo (por ejemplo, 2024-2025)">
+                  <input type="text" name="periodo" class="form-control" value="{{ old('periodo') }}" placeholder="Ingresa el periodo (por ejemplo, Julio 2024 - Diciembre 2024)">
                   @if($errors->has('periodo'))
                     <div style="color: red;">{{ $errors->first('periodo') }}</div>
+                  @endif
+                </div>
+
+                <!-- Selección de Alumnos -->
+                <div class="form-group">
+                  <label for="students">Seleccionar Alumnos</label>
+                  <select name="students[]" class="form-control" multiple="multiple" id="students" data-placeholder="Selecciona alumnos">
+                    @foreach($students as $student)
+                      <option value="{{ $student->id }}">{{ $student->name }} {{ $student->last_name }} ({{ $student->email }})</option>
+                    @endforeach
+                  </select>
+                  @if($errors->has('students'))
+                    <div style="color: red;">{{ $errors->first('students') }}</div>
                   @endif
                 </div>
               </div>
@@ -87,4 +106,33 @@
       </div>
     </section>
   </div>
+@endsection
+
+@section('scripts')
+<!-- Incluyendo las librerías necesarias -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-duallistbox/4.0.0/jquery.bootstrap-duallistbox.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    // Inicializar el Dual Listbox
+    $('#students').bootstrapDualListbox({
+      moveSelectedLabel: 'Seleccionar',
+      moveAllLabel: 'Seleccionar todos',
+      removeSelectedLabel: 'Quitar',
+      removeAllLabel: 'Quitar todos'
+    });
+
+    // Inicializar Select2 (si necesitas búsqueda dentro del Dual Listbox)
+    $('#students').select2();
+
+    // Establecer la altura mínima autoajustable según la cantidad de elementos
+    $('#students').on('change', function() {
+      var numberOfOptions = $(this).find('option').length;
+      var height = numberOfOptions > 10 ? 300 : 150; // Cambiar el valor de 10 según el número de opciones que quieras mostrar
+      $(this).css('min-height', height + 'px');
+    });
+  });
+</script>
 @endsection

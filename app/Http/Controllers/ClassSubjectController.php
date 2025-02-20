@@ -27,9 +27,9 @@ class ClassSubjectController extends Controller
     public function insert(Request $request)
     {
         $request->validate([
-            'class_id' => 'required|exists:class,id', 
-            'subject_id' => 'required|array|min:1', 
-            'status' => 'required|in:activo,inactivo', 
+            'class_id' => 'required|exists:class,id',
+            'subject_id' => 'required|array|min:1',
+            'status' => 'required|in:0,1',
         ]);
     
         if (!empty($request->subject_id)) {

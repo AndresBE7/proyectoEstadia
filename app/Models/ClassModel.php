@@ -34,15 +34,21 @@ class ClassModel extends Model
         return $return;
     }
 
-    static public function getClass() {
-        $return = ClassModel::select('class.*')
-            ->join('users', 'users.id', '=', 'class.id')// Relación entre las tablas
-            ->where('class.is_delete', '=', 0) // Filtro por 'is_delete' para obtener solo las clases no eliminadas
-            ->orderBy('class.nombre', 'asc') // Ordenamos por el nombre de la clase
-            ->get();
-    
-        return $return;
-    }
+        static public function getClass() {
+            $return = ClassModel::select('class.*')
+                ->where('class.is_delete', '=', 0)
+                ->orderBy('class.nombre', 'asc')
+                ->get();
+        
+            return $return;
+        }
+
+        // En app/Models/ClassModel.php
+        public function students()
+        {
+            return $this->belongsToMany(User::class, 'class_student', 'class_id', 'student_id')
+                        ->where('user_type', '=', 3); // Asumiendo que 3 es el código para estudiantes
+        }
     
 }
     

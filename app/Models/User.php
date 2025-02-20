@@ -103,5 +103,11 @@ class User extends Authenticatable
         return User::where('remember_token', $remember_token)->first();
     }
 
+    // En app/Models/User.php
+    public function classes()
+    {
+        return $this->belongsToMany(ClassModel::class, 'class_student', 'student_id', 'class_id');
+    }
+
 
 }

@@ -33,10 +33,9 @@ class SubjectModel extends Model
     }
 
     static public function getSubject() {
-        $return = SubjectModel::select('subject.*') 
-            ->join('users', 'users.id', '=', 'subject.id') 
-            ->orderBy('subject.nombre', 'asc') 
-            ->get(); 
+        $return = SubjectModel::select('subject.*')
+            ->orderBy('subject.nombre', 'asc')
+            ->get();
     
         return $return;
     }
