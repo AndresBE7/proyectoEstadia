@@ -21,6 +21,13 @@ class SurveyController extends Controller
         return view('admin.surveys.create');
     }
 
+    public function index_survey()
+    {
+        $surveys = Survey::all();
+        return view('student.surveys.show', compact('surveys'));
+    }
+
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -114,6 +121,15 @@ class SurveyController extends Controller
     public function activate(Survey $survey)
     {
         try {
+            // Verificar si el nivel académico de los usuarios es "Secundaria"
+            $eligibleUsers = \App\Models\User::where('nivel_academico', 'Secundaria')->get();
+    
+            if ($eligibleUsers->isEmpty()) {
+                return redirect()
+                    ->route('admin.surveys.index')
+                    ->with('error', 'No hay alumnos de nivel secundario para activar la encuesta.');
+            }
+    
             // Depuración: Verificar si el objeto Survey tiene los valores correctos
             Log::info("Activando encuesta: ", $survey->toArray());
     
@@ -210,5 +226,15 @@ class SurveyController extends Controller
         json_decode($string);
         return (json_last_error() == JSON_ERROR_NONE);
     }
+
+    public function show($id)
+    {
+        $survey = Survey::find($id);
+        if (!$survey) {
+            return redirect()->route('surveys.index')->with('error', 'Encuesta no encontrada.');
+        }
+        return view('surveys.show', compact('survey'));
+    }
+
      
 }

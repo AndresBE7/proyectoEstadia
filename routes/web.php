@@ -7,6 +7,7 @@ use App\Http\Controllers\CalendarController;
 use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ClassController;
 use App\Http\Controllers\ClassSubjectController;
+use App\Http\Controllers\ClassTeacherController;
 use App\Http\Controllers\ClassTimetableController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
@@ -88,14 +89,17 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
   Route::put('/admin/subject/update/{id}', [SubjectController::class, 'update']);
   Route::get('/admin/subject/delete/{id}', [SubjectController::class, 'delete']);
 
-  //Enlance de rutas para las documentos
-  Route::get('/admin/documents/list', [DocumentController::class, 'list']);
-  Route::get('/admin/documents/add', [DocumentController::class, 'add']);
-  Route::post('/admin/documents/insert', [DocumentController::class, 'insert']);
-  Route::get('/admin/documents/edit/{id}', [DocumentController::class, 'edit']);
-  Route::post('/admin/documents/update/{id}', [DocumentController::class, 'update']);
-  Route::get('/admin/documents/delete/{id}', [DocumentController::class, 'delete']);
-  Route::get('/admin/documents/download/{id}', [DocumentController::class, 'downloadDocument']);
+// Rutas para documentos (admin)
+Route::get('/admin/documents/list', [DocumentController::class, 'list']);
+Route::get('/admin/documents/add', [DocumentController::class, 'add']);
+Route::post('/admin/documents/insert', [DocumentController::class, 'insert']);
+Route::get('/admin/documents/edit/{id}', [DocumentController::class, 'edit']);
+Route::post('/admin/documents/update/{id}', [DocumentController::class, 'update']);
+Route::get('/admin/documents/delete/{id}', [DocumentController::class, 'delete']);
+Route::get('/admin/documents/download/{id}', [DocumentController::class, 'downloadDocument']);
+
+// Ruta para estudiantes
+Route::get('/student/documents/show', [DocumentController::class, 'documentShow'])->name('student.documents.show');
 
   // Enlace de rutas para los estudiantes desde admin
   Route::get('/admin/student/list', [StudentController::class, 'list'])->name('admin.student.list');
@@ -114,6 +118,13 @@ Route::post('reset/{token}', [AuthController::class, 'PostReset']);
   Route::post('/admin/assign_subject/update/{id}', [ClassSubjectController::class, 'update']);
   Route::delete('/admin/assign_subject/delete/{id}', [ClassSubjectController::class, 'delete'])->name('admin.assign_subject.delete');
 
+  // Enlace de rutas para asignar maestros
+  Route::get('/admin/assign_teacher/list', [ClassTeacherController::class, 'list']);
+  Route::get('/admin/assign_teacher/add', [ClassTeacherController::class, 'add']);
+  Route::post('/admin/assign_teacher/insert', [ClassTeacherController::class, 'insert']);
+  Route::get('/admin/assign_teacher/edit/{id}', [ClassTeacherController::class, 'edit']);
+  Route::post('/admin/assign_teacher/update/{id}', [ClassTeacherController::class, 'update']);
+  Route::delete('/admin/assign_teacher/delete/{id}', [ClassTeacherController::class, 'delete'])->name('admin.assign_teacher.delete');
 
   //Enlaces para cambiar la contraseña 
   Route::get('/admin/change_password', [UserController::class, 'change_password'])->name('change.password');
@@ -156,28 +167,24 @@ Route::get('/surveys/{survey}/respond', [SurveyController::class, 'showRespondFo
 Route::post('/surveys/{survey}/submit', [SurveyController::class, 'submit'])
     ->name('surveys.submit');
 
+    Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
+    Route::get('/surveys/{id}/respond', [SurveyController::class, 'respond'])->name('surveys.respond');
+    Route::post('/surveys/{id}/submit', [SurveyController::class, 'submit'])->name('surveys.submit');
+    Route::get('/surveys/{id}', [SurveyController::class, 'show'])->name('surveys.show');
 
-//Enlace de ruta para ingresar a chat
-Route::group(['middleware' => 'common'], function (){
-  Route::get('chat', [ChatController::class, 'chat']);
-  Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
 
-});
 
-Route::post('/submit_message', [ChatController::class, 'submit_message'])
-    ->name('submit_message');
-
-//para ver los mensaje no leidos (no se que hace esa middleware asi que mejor lo dejo fuero y despues si quieren lo agregan)
-Route::get('/MensajeNoLeido', [ChatController::class, 'seeMessage'])->name('seeMessage');
-
-Route::group(['middleware' => ['web', 'auth']], function () {
-  Route::prefix('calendar')->name('calendar.')->group(function () {
-      Route::get('/', [CalendarController::class, 'school_calendar'])->name('index');
-      Route::post('/event', [CalendarController::class, 'store_event'])->name('store_event');
-      Route::delete('/event/{id}', [CalendarController::class, 'delete_event'])
-          ->name('calendar.delete_event');
+    Route::group(['middleware' => 'common'], function () {
+      Route::get('chat', [ChatController::class, 'chat']);
+      Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
   });
-});
+  
+  Route::get('/MensajeNoLeido', [ChatController::class, 'seeMessage'])->name('seeMessage');
+  
+
+Route::get('/calendar', [CalendarController::class, 'school_calendar'])->name('calendar.index');
+Route::post('/calendar/store', [CalendarController::class, 'store_event'])->name('calendar.store_event');
+Route::delete('/calendar/delete/{id}', [CalendarController::class, 'delete_event'])->name('calendar.delete');
 
 //Enlace de ruta para ingresar a dashboard de maestro 
 Route::group(['middleware' => 'maestro'], function (){
@@ -195,7 +202,8 @@ Route::group(['middleware' => 'maestro'], function (){
 
   Route::get('/student/surveys/{survey}', [SurveyController::class, 'show'])->name('students.surveys.show');
   Route::post('/student/surveys/{survey}/submit', [SurveyController::class, 'submitResponse'])->name('students.surveys.submit');
-
+  Route::get('/student/documents/show', [StudentController::class, 'documentShow'])->name('student.documents.document_show');
+  Route::get('/student/documents/show', [DocumentController::class, 'documentShow'])->name('student.documents.show');
   
   //Enlaces para cambiar la contraseña 
   Route::get('/student/change_password', [UserController::class, 'change_password']);
@@ -204,6 +212,12 @@ Route::group(['middleware' => 'maestro'], function (){
   Route::group(['middleware' => 'alumno'], function () {
 
 });
+});
+
+Route::middleware(['auth'])->group(function () {
+  Route::get('/student/documents/show', [DocumentController::class, 'documentShow'])->name('student.documents.show');
+  Route::get('/student/documents/download/{id}', [DocumentController::class, 'downloadDocument'])->name('student.documents.download');
+  
 });
 
 //Enlace de ruta para ingresar a dashboard de tutor 

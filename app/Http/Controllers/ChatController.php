@@ -15,7 +15,7 @@ class ChatController extends Controller
     {
         $data['header_title'] = "Mi Chat";
         $sender_id = Auth::user()->id;
-
+    
         if (!empty($request->receiver_id)) {
             $receiver_id = base64_decode($request->receiver_id);
             if ($receiver_id == $sender_id) {
@@ -23,14 +23,13 @@ class ChatController extends Controller
             }
             $data['getReceiver'] = User::getSingle($receiver_id);
             
-            // Obtener mensajes entre los usuarios
             $data['messages'] = ChatModel::where(function($query) use ($sender_id, $receiver_id) {
                 $query->where('sender_id', $sender_id)
                       ->where('receiver_id', $receiver_id);
             })->orWhere(function($query) use ($sender_id, $receiver_id) {
                 $query->where('sender_id', $receiver_id)
                       ->where('receiver_id', $sender_id);
-            })->orderBy('created_date', 'asc')->get();
+            })->orderBy('created_at', 'asc')->get(); // Cambié a created_at
         }
         
         return view('chat.list', $data);
@@ -39,13 +38,13 @@ class ChatController extends Controller
     public function submit_message(Request $request)
     {
         try {
-            // Validación más robusta
+            Log::info('Datos recibidos en submit_message:', $request->all());
+    
             $validated = $request->validate([
                 'message' => 'required|string|max:1000',
                 'receiver_id' => 'required|integer|exists:users,id'
             ]);
-
-            // Verificar que el receptor existe y no es el mismo usuario
+    
             $receiver = User::find($validated['receiver_id']);
             if (!$receiver || $receiver->id === Auth::id()) {
                 return response()->json([
@@ -53,21 +52,15 @@ class ChatController extends Controller
                     'message' => 'Receptor inválido'
                 ], 400);
             }
-
-            // Crear el mensaje con try/catch específico para la base de datos
-            try {
-                $chat = new ChatModel();
-                $chat->sender_id = Auth::id();
-                $chat->receiver_id = $validated['receiver_id'];
-                $chat->message = $validated['message'];
-                $chat->created_date = now();
-                $chat->save();
-            } catch (\Exception $e) {
-                Log::error('Error al guardar mensaje en DB: ' . $e->getMessage());
-                throw new \Exception('Error al guardar el mensaje en la base de datos');
-            }
-
-            // Obtener el mensaje formateado para la respuesta
+    
+            $chat = new ChatModel();
+            $chat->sender_id = Auth::id();
+            $chat->receiver_id = $validated['receiver_id'];
+            $chat->message = $validated['message'];
+            $chat->status = 0; // Valor por defecto para status
+            $chat->created_date = now();
+            $chat->save();
+    
             $formattedMessage = [
                 'id' => $chat->id,
                 'message' => $chat->message,
@@ -77,23 +70,39 @@ class ChatController extends Controller
                     'name' => Auth::user()->name
                 ]
             ];
-
+    
             return response()->json([
                 'success' => true,
                 'message' => $formattedMessage
             ]);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error de validación',
-                'errors' => $e->errors()
-            ], 422);
         } catch (\Exception $e) {
             Log::error('Error en submit_message: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
-                'message' => 'Error interno del servidor'
+                'message' => 'Error al enviar el mensaje: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function seeMessage(Request $request)
+    {
+        try {
+            $userId = Auth::id();
+            $unreadMessages = ChatModel::where('receiver_id', $userId)
+                ->where('status', 0) // Suponiendo que status=0 significa "no leído"
+                ->with('sender') // Cargar relación con el remitente
+                ->orderBy('created_at', 'asc')
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'unread_messages' => $unreadMessages
+            ]);
+        } catch (\Exception $e) {
+            Log::error('Error en seeMessage: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al obtener mensajes no leídos: ' . $e->getMessage()
             ], 500);
         }
     }

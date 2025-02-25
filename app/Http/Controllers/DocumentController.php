@@ -6,7 +6,8 @@ use App\Models\DocumentModel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\File;
+use App\Models\ClassModel;
+use Illuminate\Support\Facades\Auth;
 
 class DocumentController extends Controller
 {
@@ -146,29 +147,103 @@ class DocumentController extends Controller
     public function downloadDocument($id)
     {
         try {
-            $document = DocumentModel::findOrFail($id);
+            $user = Auth::user();
+            Log::info('Usuario intentando descargar:', [
+                'user_id' => $user ? $user->id : null,
+                'user_type' => $user ? $user->user_type : 'No autenticado'
+            ]);
     
+            $document = DocumentModel::findOrFail($id);
             Log::info('Intentando descargar archivo:', [
+                'document_id' => $document->id,
                 'ruta_almacenada' => $document->archivo
             ]);
     
-            // Verificar si el archivo existe
             if (!Storage::disk('public')->exists($document->archivo)) {
+                Log::warning('Archivo no encontrado en storage:', ['ruta' => $document->archivo]);
                 return redirect()->back()->with('error', 'El archivo no existe en el servidor');
             }
     
-            // Obtener la ruta física del archivo
             $filePath = storage_path('app/public/' . $document->archivo);
+            Log::info('Ruta física del archivo:', ['filePath' => $filePath]);
     
-            // Obtener el nombre original del archivo
+            if (!file_exists($filePath)) {
+                Log::warning('Archivo no existe en el sistema:', ['filePath' => $filePath]);
+                return redirect()->back()->with('error', 'El archivo no se encuentra en el servidor');
+            }
+    
             $fileName = basename($document->archivo);
-    
-            // Retornar el archivo para descarga
             return response()->download($filePath, $fileName);
-    
         } catch (\Exception $e) {
-            Log::error('Error en la descarga: ' . $e->getMessage());
+            Log::error('Error en la descarga: ' . $e->getMessage(), ['exception' => $e]);
             return redirect()->back()->with('error', 'No se pudo descargar el archivo: ' . $e->getMessage());
         }
+    }
+
+    public function documentShow(Request $request)
+    {
+        if (!Auth::check()) {
+            Log::warning('No hay usuario autenticado al intentar acceder a documentShow');
+            return redirect()->route('login')->with('error', 'Por favor, inicia sesión.');
+        }
+    
+        $student = Auth::user();
+        Log::info('Usuario autenticado:', ['id' => $student->id, 'user_type' => $student->user_type]);
+    
+        if ($student->user_type != 3) {
+            Log::warning('Usuario no es estudiante:', ['user_type' => $student->user_type]);
+            abort(403, 'No tienes permiso para acceder a esta sección.');
+        }
+    
+        // Obtener los grupos del estudiante
+        $classes = $student->classes;
+        Log::info('Grupos del estudiante:', [
+            'class_ids' => $classes->pluck('id')->toArray(),
+            'class_names' => $classes->pluck('nombre')->toArray(),
+            'grados' => $classes->pluck('grado')->toArray()
+        ]);
+    
+        $documents = collect();
+    
+        if ($classes->isEmpty()) {
+            Log::warning('Estudiante sin grupos asignados', ['student_id' => $student->id]);
+            return view('student.documents.document_show', compact('documents'))
+                ->with('error', 'No tienes grupos asignados. Contacta al administrador.');
+        }
+    
+        // Obtener los grados de los grupos
+        $grados = $classes->pluck('grado')->toArray();
+        Log::info('Grados para filtrar:', ['grados' => $grados]);
+    
+        // Mostrar todos los documentos disponibles para comparación
+        $allDocuments = DocumentModel::all();
+        Log::info('Todos los documentos en la base:', ['documents' => $allDocuments->toArray()]);
+    
+        $search = $request->get('search');
+        if ($search) {
+            $documents = DocumentModel::whereIn('categoria_grado', $grados)
+                ->where(function ($query) use ($search) {
+                    $query->where('nombre', 'like', '%' . $search . '%')
+                          ->orWhere('categoria_asignatura', 'like', '%' . $search . '%');
+                })
+                ->get();
+        } else {
+            $documents = DocumentModel::whereIn('categoria_grado', $grados)
+                ->orWhere(function ($query) use ($grados) {
+                    foreach ($grados as $grado) {
+                        $query->orWhere('categoria_grado', 'like', '%' . $grado . '%');
+                    }
+                })
+                ->get();
+        }
+    
+        Log::info('Documentos filtrados:', ['count' => $documents->count(), 'documents' => $documents->toArray()]);
+    
+        if ($documents->isEmpty()) {
+            return view('student.documents.document_show', compact('documents'))
+                ->with('warning', 'No hay documentos disponibles para tus grados.');
+        }
+    
+        return view('student.documents.document_show', compact('documents'));
     }
 }

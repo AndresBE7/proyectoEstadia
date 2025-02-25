@@ -7,9 +7,11 @@
             <div class="card shadow-lg border-0">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">Gestión de Encuestas</h5>
-                    <a href="{{ route('admin.surveys.create') }}" class="btn btn-outline-light">
-                        <i class="fas fa-plus"></i> Nueva Encuesta
-                    </a>
+                    @if(Auth::user()->user_type == 1) 
+                        <a href="{{ route('admin.surveys.create') }}" class="btn btn-outline-light">
+                            <i class="fas fa-plus"></i> Nueva Encuesta
+                        </a>
+                    @endif
                 </div>
                 
                 <div class="card-body">
@@ -25,9 +27,14 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th>Título</th>
-                                    <th>Estado</th>
+                                    @if(Auth::user()->user_type == 1) 
+                                        <th>Estado</th>
+                                        <th class="text-center">Acciones</th>
+                                    @endif
                                     <th>Fecha de Expiración</th>
-                                    <th>Respuestas</th>
+                                    @if(Auth::user()->user_type == 1)
+                                        <th>Respuestas</th>
+                                    @endif
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
@@ -35,49 +42,53 @@
                                 @foreach($surveys as $survey)
                                 <tr>
                                     <td>{{ $survey->title }}</td>
-                                    <td>
-                                        <span class="badge {{ $survey->is_active ? 'bg-success' : 'bg-secondary' }}">
-                                            {{ $survey->is_active ? 'Activa' : 'Inactiva' }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $survey->expiration_date->format('d/m/Y') }}</td>
-                                    <td>{{ $survey->responses->count() }}</td>
-                                    <td class="text-center">
-                                        <div class="btn-group" role="group">
-                                            @if(!$survey->is_active && $survey->responses->count() == 0)
-                                                <a href="{{ route('admin.surveys.edit', $survey) }}" 
-                                                   class="btn btn-sm btn-outline-primary">
-                                                   <i class="fas fa-edit"></i> Editar
+                                    @if(Auth::user()->user_type == 1) 
+                                        <td>
+                                            <span class="badge {{ $survey->is_active ? 'bg-success' : 'bg-secondary' }}">
+                                                {{ $survey->is_active ? 'Activa' : 'Inactiva' }}
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="btn-group" role="group">
+                                                @if(!$survey->is_active && $survey->responses->count() == 0)
+                                                    <a href="{{ route('admin.surveys.edit', $survey) }}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                       <i class="fas fa-edit"></i> Editar
+                                                    </a>
+                                                @endif
+                                                
+                                                <form action="{{ route('admin.surveys.activate', $survey->id) }}" method="POST" class="d-inline">
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                                        <i class="fas fa-check-circle"></i> Activar
+                                                    </button>
+                                                </form>
+                                                
+                                                <a href="{{ route('admin.surveys.results', $survey) }}" 
+                                                   class="btn btn-sm btn-outline-info">
+                                                   <i class="fas fa-chart-bar"></i> Resultados
                                                 </a>
-                                            @endif
-                                            
-                                            <form action="{{ route('admin.surveys.activate', $survey->id) }}" method="POST" class="d-inline">
-                                                @csrf
-                                                <button type="submit" class="btn btn-sm btn-outline-success">
-                                                    <i class="fas fa-check-circle"></i> Activar
-                                                </button>
-                                            </form>
-                                            
-                                            
-                                            <a href="{{ route('surveys.respond', $survey) }}" 
-                                               class="btn btn-sm btn-outline-warning">
-                                               <i class="fas fa-eye"></i> Vista Previa
-                                            </a>
-                                            
-                                            <a href="{{ route('admin.surveys.results', $survey) }}" 
-                                               class="btn btn-sm btn-outline-info">
-                                               <i class="fas fa-chart-bar"></i> Resultados
-                                            </a>
-                                            
-                                            <form action="{{ route('admin.surveys.destroy', $survey) }}" method="POST" class="d-inline" 
-                                                  onsubmit="return confirm('¿Está seguro de eliminar esta encuesta?');">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-trash-alt"></i> Eliminar
-                                                </button>
-                                            </form>
-                                        </div>
+                                                
+                                                <form action="{{ route('admin.surveys.destroy', $survey) }}" method="POST" class="d-inline" 
+                                                      onsubmit="return confirm('¿Está seguro de eliminar esta encuesta?');">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button class="btn btn-sm btn-outline-danger">
+                                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    @endif
+                                    <td>{{ $survey->expiration_date->format('d/m/Y') }}</td>
+                                    @if(Auth::user()->user_type == 1)
+                                        <td>{{ $survey->responses->count() }}</td>
+                                    @endif
+                                    <td class="text-center">
+                                        <a href="{{ route('surveys.respond', $survey) }}" 
+                                           class="btn btn-sm btn-outline-warning">
+                                           <i class="fas fa-eye"></i> Responder
+                                        </a>
                                     </td>
                                 </tr>
                                 @endforeach

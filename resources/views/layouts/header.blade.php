@@ -170,6 +170,12 @@
         </a>
       </li>
       <li class="nav-item">
+        <a href="{{ asset('admin/assign_teacher/list') }}" class="nav-link @if(request()->segment(1)=='assign_subject') active @endif">
+          <i class="nav-icon fas fa-book"></i>
+          <p>Asignar Maestro</p>
+        </a>
+      </li>
+      <li class="nav-item">
         <a href="{{ asset('admin/documents/list') }}" class="nav-link @if(request()->segment(1)=='documents') active @endif">
           <i class="nav-icon fas fa-file-alt"></i>
           <p>Documentos</p>
@@ -219,30 +225,36 @@
         </li> 
 
         <!-- Dashboard de alumnos -->
-        @elseif(Auth::user()->user_type==3)
+        @elseif(Auth::user()->user_type == 3 && Auth::user()->nivel_academico == 'Secundaria')
         <li class="nav-item">
-          <a href="{{ asset('alumno/dashboard') }}" class="nav-link  @if(request()->segment(1)=='dashboard') active @endif">
-            <i class="nav-icon fas fa-tachometer-alt"></i>
-            <p>
-              Inicio
-            </p>
-          </a>
+            <a href="{{ asset('alumno/dashboard') }}" class="nav-link @if(request()->segment(1) == 'dashboard') active @endif">
+                <i class="nav-icon fas fa-tachometer-alt"></i>
+                <p>
+                    Inicio
+                </p>
+            </a>
         </li>
         <li class="nav-item">
-          <a href="{{ asset('student/surveys/show') }}" class="nav-link @if(request()->segment(1)=='surveyss') active @endif">
-            <i class="nav-icon fas fa-file-alt"></i>
-            <p>Encuestas</p>
+            <a href="{{ asset('student/surveys/show') }}" class="nav-link @if(request()->segment(1) == 'surveyss') active @endif">
+                <i class="nav-icon fas fa-file-alt"></i>
+                <p>Encuestas</p>
+            </a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ route('student.documents.show') }}" class="nav-link @if(request()->segment(2) == 'documents') active @endif">
+              <i class="nav-icon fas fa-file-alt"></i>
+              <p>Documentos</p>
           </a>
+      </li>
+        <li class="nav-item">
+            <a href="{{ asset('student/change_password') }}" class="nav-link @if(request()->segment(1) == 'change-password') active @endif">
+                <i class="nav-icon fas fa-lock"></i> <!-- Ícono de candado para cambiar contraseña -->
+                <p>
+                    Cambiar Contraseña
+                </p>
+            </a>
         </li>
 
-        <li class="nav-item">
-          <a href="{{ asset('student/change_password') }}" class="nav-link @if(request()->segment(1)=='change-password') active @endif">
-            <i class="nav-icon fas fa-lock"></i> <!-- Ícono de candado para cambiar contraseña -->
-            <p>
-              Cambiar Contraseña
-            </p>
-          </a>
-        </li> 
 
         <!-- Dashboard de tutores -->
         @elseif(Auth::user()->user_type==4)

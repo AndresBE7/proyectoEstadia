@@ -4,20 +4,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
-use App\Models\Event;
+use App\Models\Event; // Asegúrate de que este sea el modelo correcto
 
 class CalendarController extends Controller
 {
     // Mostrar el calendario escolar
     public function school_calendar()
     {
-        // Obtener los eventos desde la base de datos
         $events = Event::all();
-
-        // Verificar si el usuario es administrador
         $isAdmin = Auth::user()->user_type === 1;
 
-        // Datos para la vista
         return view('calendar.index', [
             'getRecord' => 'Calendario Escolar',
             'events' => $events,
@@ -28,12 +24,10 @@ class CalendarController extends Controller
     // Guardar un nuevo evento
     public function store_event(Request $request)
     {
-        // Verificar permisos
         if (Auth::user()->user_type !== 1) {
             return redirect()->route('calendar.index')->with('error', 'No tienes permisos para agregar un evento.');
         }
     
-        // Validar los datos del evento
         $request->validate([
             'title' => 'required|string|max:255',
             'start' => 'required|date',
@@ -41,7 +35,6 @@ class CalendarController extends Controller
             'all_day' => 'required|boolean',
         ]);
     
-        // Crear el evento
         Event::create([
             'title' => $request->title,
             'start' => $request->start,
@@ -49,26 +42,24 @@ class CalendarController extends Controller
             'all_day' => $request->all_day,
         ]);
     
-        // Redirigir con un mensaje de éxito
         return redirect()->route('calendar.index')->with('success', 'Evento creado exitosamente.');
     }
 
-
+    // Eliminar un evento
     public function delete_event($id)
     {
-        // Buscar el evento por ID
-        $event = Event::find($id);
+        $event = Event::find($id); // Usamos Event en lugar de CalendarModel
     
-        // Verificar si el evento existe
         if (!$event) {
-            return response()->json(['message' => 'Evento no encontrado.'], 404);
+            return response()->json([
+                'message' => 'Evento no encontrado',
+            ], 404);
         }
     
-        // Eliminar el evento
         $event->delete();
     
-        // Responder con un mensaje de éxito
-        return response()->json(['message' => 'Evento eliminado correctamente.'], 200);
+        return response()->json([
+            'message' => 'Evento eliminado con éxito',
+        ], 200);
     }
-
 }

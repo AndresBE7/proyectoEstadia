@@ -140,74 +140,73 @@
 
 @section('script')
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.1/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-    const eventModal = $('#eventModal');
+            const calendarEl = document.getElementById('calendar');
+            const eventModal = document.getElementById('eventModal');
+            const eventTitle = document.getElementById('eventTitle');
+            const eventStart = document.getElementById('eventStart');
+            const eventEnd = document.getElementById('eventEnd');
+            const eventAllDay = document.getElementById('eventAllDay');
+            const eventIdInput = document.getElementById('eventId');
+            const deleteEventBtn = document.getElementById('deleteEventBtn');
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'es',
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        },
-        events: @json($events),
-        eventClick: function(info) {
-            $('#eventTitle').text(info.event.title);
-            $('#eventStart').text(new Date(info.event.start).toLocaleString('es-ES'));
-            $('#eventEnd').text(info.event.end ? 
-                new Date(info.event.end).toLocaleString('es-ES') : 'No especificado');
-            $('#eventAllDay').text(info.event.allDay ? 'Sí' : 'No');
-
-            $('#eventId').val(info.event.id); // Asignar el ID del evento al formulario de eliminación
-            eventModal.modal('show');
-        }
-    });
-
-    calendar.render();
-
-    // Código para mostrar el formulario de "Agregar Evento"
-    const addEventBtn = document.getElementById('addEventBtn');
-    const addEventForm = document.getElementById('addEventForm');
-
-    if (addEventBtn && addEventForm) {
-        addEventBtn.addEventListener('click', function() {
-            addEventForm.style.display = 'block';
-        });
-    }
-
-    // Código para eliminar eventos
-    $('#deleteEventBtn').on('click', function() {
-        const eventId = $('#eventId').val();
-        
-        if (confirm('¿Estás seguro de que quieres eliminar este evento?')) {
-            $.ajax({
-                url: `/calendar/${eventId}`,
-                method: 'DELETE',
-                headers: {
-                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
-                success: function(response) {
-                    if (response.message === 'Evento eliminado correctamente.') {
-                        const event = calendar.getEventById(eventId);
-                        if (event) {
-                            event.remove(); // Eliminar evento del calendario
-                        }
-                        eventModal.modal('hide');
-                        toastr.success('Evento eliminado correctamente');
-                    } else {
-                        toastr.error(response.message || 'Error al eliminar el evento');
-                    }
-                },
-                error: function(xhr) {
-                    console.error('Error:', xhr);
-                    toastr.error('Ocurrió un error al eliminar el evento');
+                events: @json($events),
+                eventClick: function(info) {
+                    // Llenar el modal con los detalles del evento
+                    eventTitle.textContent = info.event.title;
+                    eventStart.textContent = info.event.start.toLocaleString('es-ES');
+                    eventEnd.textContent = info.event.end ? info.event.end.toLocaleString('es-ES') : 'No definido';
+                    eventAllDay.textContent = info.event.allDay ? 'Sí' : 'No';
+                    eventIdInput.value = info.event.id;
+
+                    // Mostrar el modal
+                    $('#eventModal').modal('show');
                 }
             });
-        }
-    });
-});
+
+            calendar.render();
+
+            // Mostrar formulario de agregar evento
+            document.getElementById('addEventBtn').addEventListener('click', function() {
+                document.getElementById('addEventForm').style.display = 'block';
+            });
+
+            // Eliminar evento desde el botón del modal
+            deleteEventBtn.addEventListener('click', function() {
+                const eventId = eventIdInput.value;
+
+                if (confirm('¿Estás seguro de que deseas eliminar este evento?')) {
+                    axios.delete('/calendar/delete/' + eventId)
+                        .then(function(response) {
+                            if (response.status === 200) {
+                                const event = calendar.getEventById(eventId);
+                                if (event) {
+                                    event.remove();
+                                }
+                                $('#eventModal').modal('hide');
+                                alert('Evento eliminado correctamente.');
+                            } else {
+                                alert('Error al eliminar el evento.');
+                            }
+                        })
+                        .catch(function(error) {
+                            console.error("Error en la solicitud de eliminación:", error);
+                            alert('Hubo un problema al eliminar el evento.');
+                        });
+                }
+            });
+        });
     </script>
 @endsection
