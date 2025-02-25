@@ -188,6 +188,13 @@
             <p>Entrevistas</p>
         </a>
     </li>
+
+    <li class="nav-item">
+      <a href="{{ asset('/admin/surveys/reports') }}" class="nav-link @if(request()->segment(1)=='surveyss') active @endif">
+          <i class="nav-icon fas fa-microphone"></i>
+          <p>Reportes de Encuesta</p>
+      </a>
+  </li>
     
 
       <li class="nav-item">

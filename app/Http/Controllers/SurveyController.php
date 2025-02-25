@@ -121,34 +121,44 @@ class SurveyController extends Controller
     public function activate(Survey $survey)
     {
         try {
+            Log::info('Iniciando activación de encuesta:', ['survey_id' => $survey->id, 'current_is_active' => $survey->is_active]);
+    
             // Verificar si el nivel académico de los usuarios es "Secundaria"
             $eligibleUsers = \App\Models\User::where('nivel_academico', 'Secundaria')->get();
+            Log::info('Usuarios elegibles encontrados:', ['count' => $eligibleUsers->count()]);
     
             if ($eligibleUsers->isEmpty()) {
+                Log::warning('No hay usuarios elegibles para activar la encuesta:', ['survey_id' => $survey->id]);
                 return redirect()
                     ->route('admin.surveys.index')
                     ->with('error', 'No hay alumnos de nivel secundario para activar la encuesta.');
             }
     
-            // Depuración: Verificar si el objeto Survey tiene los valores correctos
-            Log::info("Activando encuesta: ", $survey->toArray());
+            // Cambiar is_active a true y guardar
+            $survey->is_active = true;
+            $survey->save();
+            Log::info('Encuesta activada en memoria:', ['survey_id' => $survey->id, 'new_is_active' => $survey->is_active]);
     
-            $survey->update(['is_active' => true]);
-            
+            // Verificar si se guardó en la base de datos
+            $updatedSurvey = Survey::find($survey->id);
+            Log::info('Estado después de guardar:', ['survey_id' => $updatedSurvey->id, 'is_active' => $updatedSurvey->is_active]);
+    
             return redirect()
                 ->route('admin.surveys.index')
                 ->with('success', 'Encuesta activada exitosamente.');
                 
         } catch (\Exception $e) {
-            Log::error("Error al activar la encuesta: " . $e->getMessage());
+            Log::error('Error al activar la encuesta:', [
+                'survey_id' => $survey->id,
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             return redirect()
                 ->route('admin.surveys.index')
                 ->with('error', 'No se pudo activar la encuesta. Por favor, intente nuevamente.');
         }
     }
-    
-    
 
     public function results(Survey $survey)
     {
@@ -181,40 +191,49 @@ class SurveyController extends Controller
 
     public function userResponses(Survey $survey, $userId)
     {
-        // Obtener el usuario
         $user = \App\Models\User::findOrFail($userId);
-    
-        // Obtener la respuesta del usuario para esta encuesta
+        
         $response = $survey->responses()
             ->where('user_id', $userId)
             ->first();
-    
-        // Procesar las preguntas de la encuesta
+        
         $questions = $survey->questions;
+        // Forzar la conversión a array si es una cadena JSON
         if (is_string($questions)) {
-            if ($this->isJson($questions)) {
-                $questions = json_decode($questions, true); // Si es JSON, decodificar
+            $decodedQuestions = json_decode($questions, true);
+            if (is_array($decodedQuestions)) {
+                $questions = $decodedQuestions;
             } else {
-                $questions = array_map('trim', explode(',', $questions)); // Convertir cadena separada por comas a array
+                // Si no es JSON válido, intentar dividir por comas como respaldo
+                $questions = array_map('trim', explode(',', $questions));
             }
+        } elseif (!is_array($questions)) {
+            // Si no es ni cadena ni array, usar un array vacío
+            $questions = [];
         }
     
-        // Procesar las respuestas del usuario
+        // Depuración para confirmar el resultado
+        \Illuminate\Support\Facades\Log::info('Preguntas procesadas en userResponses:', [
+            'survey_id' => $survey->id,
+            'questions' => $questions,
+            'type' => gettype($questions),
+        ]);
+    
         $answers = [];
         if ($response) {
             $answers = $response->answers;
             if (is_string($answers)) {
-                if ($this->isJson($answers)) {
-                    $answers = json_decode($answers, true); // Si es JSON, decodificar
+                $decodedAnswers = json_decode($answers, true);
+                if (is_array($decodedAnswers)) {
+                    $answers = $decodedAnswers;
                 } else {
-                    $answers = array_map('trim', explode(',', $answers)); // Convertir cadena separada por comas a array
+                    $answers = array_map('trim', explode(',', $answers));
                 }
             }
         }
-    
-        // Convertimos las respuestas a una cadena separada por comas para la vista
+        
         $answersString = implode(',', array_map(fn($ans) => $ans ?: 'No respondida', $answers));
-    
+        
         return view('admin.surveys.user-responses', compact('survey', 'user', 'questions', 'answers', 'answersString'));
     }
     

@@ -8,17 +8,10 @@ use Carbon\Carbon;
 class Survey extends Model
 {
     protected $fillable = [
-        'title',
-        'description',
-        'questions',
-        'groups',
-        'expiration_date',
-        'is_active'
+        'title', 'description', 'questions', 'expiration_date', 'is_active'
     ];
-
+    
     protected $casts = [
-        'questions' => 'array',
-        'groups' => 'array',
         'is_active' => 'boolean',
         'expiration_date' => 'datetime',
     ];
@@ -36,7 +29,25 @@ class Survey extends Model
 
     public function isExpired()
     {
-        return $this->expiration_date->isPast();
+        return $this->expiration_date ? $this->expiration_date->isPast() : false;
+    }
+
+    public function getQuestionsAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value; // Si ya es un array, no hacemos nada
+        }
+    
+        if (is_string($value)) {
+            $decoded = json_decode($value, true);
+            if (is_array($decoded)) {
+                return $decoded; // Si es JSON válido, lo devolvemos como array
+            }
+            // Si no es JSON, asumimos que es una cadena separada por comas
+            return array_filter(array_map('trim', explode(',', $value))); // Filtramos valores vacíos
+        }
+    
+        return []; // Default si no es ni string ni array
     }
 
     protected static function boot()

@@ -15,6 +15,7 @@ use App\Http\Controllers\ParentController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SurveyController;
+use App\Http\Controllers\SurveyReportController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -138,14 +139,19 @@ Route::get('/student/documents/show', [DocumentController::class, 'documentShow'
   Route::get('/admin/backup/download/{filename}', [BackupController::class, 'download'])->name('admin.backup.download');
 
 
-    Route::get('admin/surveys/index', [SurveyController::class, 'index']);
-    Route::get('/admin/surveys/create', [SurveyController::class, 'create'])->name('admin.surveys.create');
-    Route::post('/admin/surveys', [SurveyController::class, 'store'])->name('admin.surveys.store');
-    Route::post('/admin/surveys/{id}/activate', [SurveyController::class, 'activate'])->name('admin.surveys.activate');
-    Route::delete('/admin/surveys/{id}', [SurveyController::class, 'destroy'])->name('admin.surveys.destroy');
-    Route::post('admin/surveys/{survey}/activate', [SurveyController::class, 'activate'])->name('admin.surveys.activate');
-    Route::get('/admin/surveys/{survey}/results/user/{user}', 'App\Http\Controllers\SurveyController@userResponses')->name('admin.surveys.user-responses');
+  Route::get('admin/surveys/index', [SurveyController::class, 'index']);
+  Route::get('/admin/surveys/create', [SurveyController::class, 'create'])->name('admin.surveys.create');
+  Route::post('/admin/surveys', [SurveyController::class, 'store'])->name('admin.surveys.store');
+  Route::post('/admin/surveys/{id}/activate', [SurveyController::class, 'activate'])->name('admin.surveys.activate');
+  Route::delete('/admin/surveys/{id}', [SurveyController::class, 'destroy'])->name('admin.surveys.destroy');
+  Route::post('admin/surveys/{survey}/activate', [SurveyController::class, 'activate'])->name('admin.surveys.activate');
+  Route::get('/admin/surveys/{survey}/results/user/{user}', 'App\Http\Controllers\SurveyController@userResponses')->name('admin.surveys.user-responses');
+});
 
+Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
+  // Rutas existentes...
+  Route::get('/surveys/reports', [SurveyReportController::class, 'index'])->name('surveys.reports.index');
+  Route::get('/surveys/reports/export', [SurveyReportController::class, 'exportPdf'])->name('surveys.reports.export');
 });
 
 Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {

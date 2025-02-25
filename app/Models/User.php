@@ -104,9 +104,26 @@ class User extends Authenticatable
     }
 
     // En app/Models/User.php
+    public function students()
+    {
+        return $this->hasMany(User::class, 'parent_id')
+                    ->where('user_type', 3)
+                    ->where('is_delete', 0);
+    }
+
+    // Relación: Tutor de un estudiante
+    public function parent()
+    {
+        return $this->belongsTo(User::class, 'parent_id')
+                    ->where('user_type', 4)
+                    ->where('is_delete', 0);
+    }
+
+    // Relación: Grupos del estudiante (muchos a muchos)
     public function classes()
     {
-        return $this->belongsToMany(ClassModel::class, 'class_student', 'student_id', 'class_id');
+        return $this->belongsToMany(ClassModel::class, 'class_student', 'student_id', 'class_id')
+                    ->where('class.is_delete', 0);
     }
 
 
