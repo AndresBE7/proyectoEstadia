@@ -329,33 +329,83 @@
 
 @endsection
 
-
-
 @section('script')
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script type="text/javascript">
-document.body.addEventListener('submit', async function (e) {
-    if (e.target.id === 'submit_message') {
-        e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const messageForm = document.getElementById('submit_message');
+    const chatMessages = document.getElementById('chat-messages');
 
-        const form = e.target;
-        const formData = new FormData(form);
-        console.log('Enviando mensaje...', Object.fromEntries(formData.entries()));
-        try {
-            const response = await axios.post("{{ route('submit_message') }}", formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
-            console.log('Mensaje enviado con éxito', response.data);
-        } catch (error) {
-            console.log('Error al enviar el mensaje', error);
-        }
+    // Función para cargar mensajes dinámicamente
+    function loadMessages() {
+        if (!chatMessages) return; // Salir si no hay chat abierto
+        const receiverId = document.querySelector('input[name="receiver_id"]').value;
+        const messagesList = chatMessages.querySelector('ul');
+
+        axios.get(`/chat/messages?receiver_id=${receiverId}`)
+            .then(response => {
+                if (response.data.success) {
+                    messagesList.innerHTML = ''; // Limpiar mensajes actuales
+                    response.data.messages.forEach(msg => {
+                        const isSender = msg.sender_id === {{ Auth::id() }};
+                        const messageHtml = `
+                            <li class="clearfix">
+                                <div class="message-data ${isSender ? 'text-right' : ''}">
+                                    <span class="message-data-time">${new Date(msg.created_date).toLocaleTimeString()}</span>
+                                    ${isSender ? '<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="avatar">' : ''}
+                                </div>
+                                <div class="message ${isSender ? 'other-message float-right' : 'my-message'}">
+                                    ${msg.message}
+                                </div>
+                            </li>
+                        `;
+                        messagesList.insertAdjacentHTML('beforeend', messageHtml);
+                    });
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            })
+            .catch(error => console.error('Error al cargar mensajes:', error));
+    }
+
+    // Cargar mensajes inicialmente y cada 5 segundos si hay un chat abierto
+    if (chatMessages) {
+        loadMessages();
+        setInterval(loadMessages, 5000);
+    }
+
+    // Manejar el envío de mensajes
+    if (messageForm) {
+        messageForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            const textarea = this.querySelector('textarea');
+
+            submitButton.disabled = true;
+
+            try {
+                const response = await axios.post("{{ route('submit_message') }}", formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    }
+                });
+
+                if (response.data.success) {
+                    textarea.value = '';
+                    loadMessages(); // Recargar mensajes inmediatamente después de enviar
+                } else {
+                    alert('Error al enviar el mensaje: ' + response.data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar el mensaje');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
     }
 });
-
-
-
 </script>
-    
 @endsection

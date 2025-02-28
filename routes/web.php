@@ -17,6 +17,7 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SurveyController;
 use App\Http\Controllers\SurveyReportController;
 use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TeacherGradeController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -154,6 +155,33 @@ Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'a
   Route::get('/surveys/reports/export', [SurveyReportController::class, 'exportPdf'])->name('surveys.reports.export');
 });
 
+// Rutas para administradores (user_type 1)
+Route::middleware(['auth', 'admin'])->group(function () {
+  Route::get('/admin/documents/list', [DocumentController::class, 'list'])->name('admin.documents.list');
+  Route::get('/admin/documents/add', [DocumentController::class, 'add'])->name('admin.documents.add');
+  Route::post('/admin/documents/insert', [DocumentController::class, 'insert'])->name('admin.documents.insert');
+  Route::get('/admin/documents/edit/{id}', [DocumentController::class, 'edit'])->name('admin.documents.edit');
+  Route::post('/admin/documents/update/{id}', [DocumentController::class, 'update'])->name('admin.documents.update');
+  Route::get('/admin/documents/delete/{id}', [DocumentController::class, 'delete'])->name('admin.documents.delete');
+  Route::get('/admin/documents/download/{id}', [DocumentController::class, 'downloadDocument'])->name('admin.documents.download');
+});
+
+// Rutas para maestros (user_type 2)
+Route::middleware(['auth', 'maestro'])->group(function () {
+  Route::get('/teacher/documents/list', [DocumentController::class, 'list'])->name('teacher.documents.list');
+  Route::get('/teacher/documents/add', [DocumentController::class, 'add'])->name('teacher.documents.add');
+  Route::post('/teacher/documents/insert', [DocumentController::class, 'insert'])->name('teacher.documents.insert');
+  Route::get('/teacher/documents/edit/{id}', [DocumentController::class, 'edit'])->name('teacher.documents.edit');
+  Route::post('/teacher/documents/update/{id}', [DocumentController::class, 'update'])->name('teacher.documents.update');
+  Route::get('/teacher/documents/delete/{id}', [DocumentController::class, 'delete'])->name('teacher.documents.delete');
+  Route::get('/teacher/documents/download/{id}', [DocumentController::class, 'downloadDocument'])->name('teacher.documents.download');
+});
+
+// Ruta para estudiantes (user_type 3)
+Route::get('/student/documents/show', [DocumentController::class, 'documentShow'])->name('student.documents.show');
+
+// Ruta para estudiantes (sin cambios)
+Route::get('/student/documents/show', [DocumentController::class, 'documentShow'])->name('student.documents.show');
 Route::group(['middleware' => ['auth', 'admin'], 'prefix' => 'admin', 'as' => 'admin.'], function () {
   Route::get('/surveys', [SurveyController::class, 'index'])->name('surveys.index');
   Route::get('/surveys/create', [SurveyController::class, 'create'])->name('surveys.create');
@@ -183,8 +211,9 @@ Route::post('/surveys/{survey}/submit', [SurveyController::class, 'submit'])
     Route::group(['middleware' => 'common'], function () {
       Route::get('chat', [ChatController::class, 'chat']);
       Route::post('/submit_message', [ChatController::class, 'submit_message'])->name('submit_message');
+      Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('get_messages');
   });
-  
+  Route::get('/chat/messages', [ChatController::class, 'getMessages'])->name('get_messages');
   Route::get('/MensajeNoLeido', [ChatController::class, 'seeMessage'])->name('seeMessage');
   
 
@@ -195,6 +224,7 @@ Route::delete('/calendar/delete/{id}', [CalendarController::class, 'delete_event
 //Enlace de ruta para ingresar a dashboard de maestro 
 Route::group(['middleware' => 'maestro'], function (){
   Route::get('/teacher/dashboard', [DashboardController::class, 'dashboard']);
+  Route::get('/teacher/documents/list', [DashboardController::class, 'documents.list']);
 
   
   //Enlaces para cambiar la contraseña 
@@ -225,6 +255,15 @@ Route::middleware(['auth'])->group(function () {
   Route::get('/student/documents/download/{id}', [DocumentController::class, 'downloadDocument'])->name('student.documents.download');
   
 });
+
+Route::get('/teacher/grades', [TeacherGradeController::class, 'index'])->name('teacher.grades.index');
+Route::get('/teacher/grades/create/{classId}', [TeacherGradeController::class, 'create'])->name('teacher.grades.create');
+Route::post('/teacher/grades/store/{classId}', [TeacherGradeController::class, 'store'])->name('teacher.grades.store');
+Route::get('/teacher/grades/edit/{id}', [TeacherGradeController::class, 'edit'])->name('teacher.grades.edit');
+Route::put('/teacher/grades/update/{id}', [TeacherGradeController::class, 'update'])->name('teacher.grades.update');
+Route::delete('/teacher/grades/destroy/{id}', [TeacherGradeController::class, 'destroy'])->name('teacher.grades.destroy');
+Route::get('/teacher/grades/{classId}/show', [TeacherGradeController::class, 'showGrades'])->name('teacher.grades.show');
+Route::get('/teacher/grades/check-grade', [TeacherGradeController::class, 'checkGrade'])->name('teacher.grades.check-grade');
 
 //Enlace de ruta para ingresar a dashboard de tutor 
   Route::group(['middleware' => 'tutor'], function (){

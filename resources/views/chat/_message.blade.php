@@ -1,5 +1,13 @@
+<!-- views/chat/_message.blade.php -->
 <div class="chat-header clearfix">
-    @include('chat._header')
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="chat-about">
+                <h6 class="m-b-0">{{ $getReceiver->name }}</h6>
+                <small>Última vez activo: {{ $getReceiver->updated_at->diffForHumans() }}</small>
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="chat-history" id="chat-messages">
@@ -21,69 +29,61 @@
     </form>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const messageForm = document.getElementById('submit_message');
-        const chatMessages = document.getElementById('chat-messages');
-    
-        if (messageForm) {
-            messageForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const formData = new FormData(this);
-                const submitButton = this.querySelector('button[type="submit"]');
-                const textarea = this.querySelector('textarea');
-                
-                // Deshabilitar el botón mientras se envía
-                submitButton.disabled = true;
-                
-                // Enviar el mensaje
-                fetch('{{ route("submit_message") }}', {
-                    method: 'POST',
+@section('script')
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script type="text/javascript">
+document.addEventListener('DOMContentLoaded', function() {
+    const messageForm = document.getElementById('submit_message');
+    const chatMessages = document.getElementById('chat-messages');
+
+    if (messageForm && chatMessages) {
+        messageForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData(this);
+            const submitButton = this.querySelector('button[type="submit"]');
+            const textarea = this.querySelector('textarea');
+
+            submitButton.disabled = true;
+
+            try {
+                const response = await axios.post("{{ route('submit_message') }}", formData, {
                     headers: {
+                        'Content-Type': 'multipart/form-data',
                         'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        // Limpiar el textarea
-                        textarea.value = '';
-                        
-                        // Agregar el mensaje al chat
-                        const newMessage = `
-                            <li class="clearfix">
-                                <div class="message-data text-right">
-                                    <span class="message-data-time">${new Date().toLocaleTimeString()}</span>
-                                </div>
-                                <div class="message other-message float-right">
-                                    ${data.message.message}
-                                </div>
-                            </li>
-                        `;
-                        
-                        // Encontrar el ul en chat-messages y agregar el mensaje
-                        const messagesList = chatMessages.querySelector('ul');
-                        if (messagesList) {
-                            messagesList.insertAdjacentHTML('beforeend', newMessage);
-                            
-                            // Scroll al final del chat
-                            chatMessages.scrollTop = chatMessages.scrollHeight;
-                        }
-                    } else {
-                        alert('Error al enviar el mensaje');
                     }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    alert('Error al enviar el mensaje');
-                })
-                .finally(() => {
-                    // Rehabilitar el botón
-                    submitButton.disabled = false;
                 });
-            });
-        }
-    });
-    </script>
+
+                if (response.data.success) {
+                    textarea.value = '';
+
+                    const newMessage = `
+                        <li class="clearfix">
+                            <div class="message-data text-right">
+                                <span class="message-data-time">${new Date().toLocaleTimeString()}</span>
+                            </div>
+                            <div class="message other-message float-right">
+                                ${response.data.message.message}
+                            </div>
+                        </li>
+                    `;
+
+                    const messagesList = chatMessages.querySelector('ul');
+                    if (messagesList) {
+                        messagesList.insertAdjacentHTML('beforeend', newMessage);
+                        chatMessages.scrollTop = chatMessages.scrollHeight;
+                    }
+                } else {
+                    alert('Error al enviar el mensaje: ' + response.data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error al enviar el mensaje');
+            } finally {
+                submitButton.disabled = false;
+            }
+        });
+    }
+});
+</script>
+@endsection

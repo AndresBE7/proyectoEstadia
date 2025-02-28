@@ -24,6 +24,9 @@ class ChatModel extends Model
     // Desactivar timestamps automáticos si solo usas created_date
     public $timestamps = false;
 
+    // Indicar que created_date es una fecha
+    protected $dates = ['created_date'];
+
     public function sender()
     {
         return $this->belongsTo(User::class, 'sender_id');

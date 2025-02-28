@@ -214,10 +214,29 @@
         <!-- Dashboard de maestros -->
         @elseif(Auth::user()->user_type==2)
         <li class="nav-item">
+          <a href="{{ asset('teacher/grades') }}" class="nav-link  @if(request()->segment(1)=='dashboard') active @endif">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>
+              Calificaciones
+            </p>
+          </a>
+        </li>
+
+        <li class="nav-item">
           <a href="{{ asset('teacher/dashboard') }}" class="nav-link  @if(request()->segment(1)=='dashboard') active @endif">
             <i class="nav-icon fas fa-tachometer-alt"></i>
             <p>
               Inicio
+            </p>
+          </a>
+        </li>
+
+        
+        <li class="nav-item">
+          <a href="{{ asset('teacher/documents/list') }}" class="nav-link  @if(request()->segment(1)=='dashboard') active @endif">
+            <i class="nav-icon fas fa-tachometer-alt"></i>
+            <p>
+              Documentos
             </p>
           </a>
         </li>

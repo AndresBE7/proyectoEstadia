@@ -106,4 +106,32 @@ class ChatController extends Controller
             ], 500);
         }
     }
+
+// ChatController.php
+    public function getMessages(Request $request)
+    {
+        $sender_id = Auth::id();
+        $receiver_id = $request->query('receiver_id');
+
+        $messages = ChatModel::where(function($query) use ($sender_id, $receiver_id) {
+            $query->where('sender_id', $sender_id)
+                ->where('receiver_id', $receiver_id);
+        })->orWhere(function($query) use ($sender_id, $receiver_id) {
+            $query->where('sender_id', $receiver_id)
+                ->where('receiver_id', $sender_id);
+        })->orderBy('created_at', 'asc')->get();
+
+        return response()->json([
+            'success' => true,
+            'messages' => $messages->map(function($msg) {
+                return [
+                    'id' => $msg->id,
+                    'sender_id' => $msg->sender_id,
+                    'receiver_id' => $msg->receiver_id,
+                    'message' => $msg->message,
+                    'created_date' => $msg->created_date->toDateTimeString(),
+                ];
+            })
+        ]);
+    }
 }

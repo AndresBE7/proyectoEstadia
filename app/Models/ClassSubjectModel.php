@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 class ClassSubjectModel extends Model
 {
     protected $table = 'class_subject';
+    protected $fillable = ['class_id', 'subject_id', 'status', 'created_by', 'is_delete'];
 
     // Configurar los nombres de las columnas de timestamps
     const CREATED_AT = 'created_at';
@@ -49,6 +50,16 @@ class ClassSubjectModel extends Model
     static public function deletSubject($class_id)
     {
         return self::where('class_id', '=', $class_id->delte());
+    }
+
+    public function subject()
+    {
+        return $this->belongsTo(SubjectModel::class, 'subject_id');
+    }
+
+    public function class()
+    {
+        return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
 }

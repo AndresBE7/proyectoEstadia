@@ -125,6 +125,15 @@ class User extends Authenticatable
         return $this->belongsToMany(ClassModel::class, 'class_student', 'student_id', 'class_id')
                     ->where('class.is_delete', 0);
     }
+    public function grades()
+    {
+        return $this->hasMany(Grade::class, 'student_id');
+    }
+    
+    public function taughtGrades()
+    {
+        return $this->hasMany(Grade::class, 'teacher_id');
+    }
 
-
+    
 }

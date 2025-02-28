@@ -15,7 +15,8 @@ class DocumentController extends Controller
     public function list(Request $request)
     {
         $search = $request->get('search');
-
+        $userType = Auth::user()->user_type;
+    
         // Aplicar filtro si hay búsqueda
         if ($search) {
             $getRecord = DocumentModel::where('nombre', 'like', '%' . $search . '%')
@@ -23,19 +24,19 @@ class DocumentController extends Controller
                 ->orWhere('categoria_asignatura', 'like', '%' . $search . '%')
                 ->get();
         } else {
-            // Obtener todos los registros
             $getRecord = DocumentModel::all();
         }
-
-        return view('admin.documents.list', compact('getRecord'));
+    
+        $view = request()->segment(1) == 'admin' ? 'admin.documents.list' : 'teacher.documents.list';
+        return view($view, compact('getRecord'));
     }
 
     // Mostrar formulario para añadir un nuevo documento
-    public function add(){
-    $data['header_title'] = "Añadir documento";
-    return view('admin.documents.add', $data);
-}
-
+    public function add()
+    {
+        $data['header_title'] = "Añadir documento";
+        return view('admin.documents.add', $data); // Usar la misma vista para ambos roles
+    }
 
     // Insertar un nuevo documento
     public function insert(Request $request)
@@ -47,19 +48,15 @@ class DocumentController extends Controller
             'categoria_asignatura' => 'required|string|max:100',
             'archivo' => 'required|file|mimes:pdf,doc,docx,txt|max:2048',
         ]);
-    
+
         try {
-            // Subir archivo y obtener la ruta
             if ($request->hasFile('archivo')) {
                 $file = $request->file('archivo');
                 $filename = time() . '_' . $file->getClientOriginalName();
                 $path = $file->storeAs('documentos', $filename, 'public');
-                
-                // Debug para verificar la ruta
                 Log::info('Archivo guardado:', ['ruta' => $path]);
             }
-    
-            // Guardar en la base de datos
+
             $save = new DocumentModel;
             $save->nombre = $request->nombre;
             $save->descripcion = $request->descripcion;
@@ -67,8 +64,9 @@ class DocumentController extends Controller
             $save->categoria_asignatura = $request->categoria_asignatura;
             $save->archivo = $path;
             $save->save();
-    
-            return redirect('admin/documents/list')->with('success', 'Documento creado correctamente.');
+
+            $redirectRoute = Auth::user()->user_type == 1 ? 'admin.documents.list' : 'teacher.documents.list';
+            return redirect()->route($redirectRoute)->with('success', 'Documento creado correctamente.');
         } catch (\Exception $e) {
             Log::error('Error al guardar documento: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Error al crear el documento: ' . $e->getMessage());
@@ -82,54 +80,46 @@ class DocumentController extends Controller
 
         if (!empty($data['getRecord'])) {
             $data['header_title'] = "Editar documento";
-            return view('admin.documents.edit', $data);
+            return view('admin.documents.edit', $data); // Usar la misma vista para ambos roles
         } else {
-            abort(404); // Error 404 si no se encuentra el documento
+            abort(404);
         }
     }
 
     // Actualizar un documento
-    public function update(Request $request, $id){
+    public function update(Request $request, $id)
+    {
         $document = DocumentModel::findOrFail($id);
 
-        // Validar los campos
         $request->validate([
-            'nombre' => 'required|string|max:255',  // Asegúrate de que 'nombre' sea obligatorio
+            'nombre' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
-            'archivo' => 'nullable|file|mimes:pdf,doc,docx|max:2048',  // Validar archivo
+            'archivo' => 'nullable|file|mimes:pdf,doc,docx|max:2048',
         ]);
 
-        // Verificar que 'nombre' no sea nulo
-        $document->nombre = $request->input('nombre');  // Asegúrate de que 'nombre' se esté pasando correctamente
+        $document->nombre = $request->input('nombre');
         $document->descripcion = $request->input('descripcion');
 
-        // Verificar si se marcó el checkbox para eliminar el archivo actual
         if ($request->has('eliminar_archivo') && $request->input('eliminar_archivo') == 1) {
-            // Eliminar archivo actual si existe
             if ($document->archivo && Storage::exists($document->archivo)) {
                 Storage::delete($document->archivo);
             }
-            $document->archivo = null; // Eliminar referencia al archivo
+            $document->archivo = null;
         }
 
-        // Manejar la subida de un nuevo archivo
         if ($request->hasFile('archivo')) {
-            // Eliminar el archivo actual antes de guardar el nuevo
             if ($document->archivo && Storage::exists($document->archivo)) {
                 Storage::delete($document->archivo);
             }
-
-            // Guardar el nuevo archivo
-            $rutaArchivo = $request->file('archivo')->store('documentos', 'public');  // Asegúrate de usar 'public' para almacenamiento público
+            $rutaArchivo = $request->file('archivo')->store('documentos', 'public');
             $document->archivo = $rutaArchivo;
         }
 
-        // Guardar los cambios
         $document->save();
 
-        return redirect('admin/documents/list')->with('success', 'Documento actualizado correctamente.');
+        $redirectRoute = Auth::user()->user_type == 1 ? 'admin.documents.list' : 'teacher.documents.list';
+        return redirect()->route($redirectRoute)->with('success', 'Documento actualizado correctamente.');
     }
-
 
     // Eliminar un documento
     public function delete($id)
@@ -138,12 +128,13 @@ class DocumentController extends Controller
         if ($record) {
             Storage::disk('public')->delete($record->archivo);
             $record->delete();
-            return redirect()->back()->with('success', 'Documento eliminado correctamente.');
+            $redirectRoute = Auth::user()->user_type == 1 ? 'admin.documents.list' : 'teacher.documents.list';
+            return redirect()->route($redirectRoute)->with('success', 'Documento eliminado correctamente.');
         } else {
             return redirect()->back()->with('error', 'El documento no existe.');
         }
     }
-    
+
     public function downloadDocument($id)
     {
         try {
@@ -152,26 +143,26 @@ class DocumentController extends Controller
                 'user_id' => $user ? $user->id : null,
                 'user_type' => $user ? $user->user_type : 'No autenticado'
             ]);
-    
+
             $document = DocumentModel::findOrFail($id);
             Log::info('Intentando descargar archivo:', [
                 'document_id' => $document->id,
                 'ruta_almacenada' => $document->archivo
             ]);
-    
+
             if (!Storage::disk('public')->exists($document->archivo)) {
                 Log::warning('Archivo no encontrado en storage:', ['ruta' => $document->archivo]);
                 return redirect()->back()->with('error', 'El archivo no existe en el servidor');
             }
-    
+
             $filePath = storage_path('app/public/' . $document->archivo);
             Log::info('Ruta física del archivo:', ['filePath' => $filePath]);
-    
+
             if (!file_exists($filePath)) {
                 Log::warning('Archivo no existe en el sistema:', ['filePath' => $filePath]);
                 return redirect()->back()->with('error', 'El archivo no se encuentra en el servidor');
             }
-    
+
             $fileName = basename($document->archivo);
             return response()->download($filePath, $fileName);
         } catch (\Exception $e) {
@@ -186,39 +177,33 @@ class DocumentController extends Controller
             Log::warning('No hay usuario autenticado al intentar acceder a documentShow');
             return redirect()->route('login')->with('error', 'Por favor, inicia sesión.');
         }
-    
+
         $student = Auth::user();
         Log::info('Usuario autenticado:', ['id' => $student->id, 'user_type' => $student->user_type]);
-    
+
         if ($student->user_type != 3) {
             Log::warning('Usuario no es estudiante:', ['user_type' => $student->user_type]);
             abort(403, 'No tienes permiso para acceder a esta sección.');
         }
-    
-        // Obtener los grupos del estudiante
+
         $classes = $student->classes;
         Log::info('Grupos del estudiante:', [
             'class_ids' => $classes->pluck('id')->toArray(),
             'class_names' => $classes->pluck('nombre')->toArray(),
             'grados' => $classes->pluck('grado')->toArray()
         ]);
-    
+
         $documents = collect();
-    
+
         if ($classes->isEmpty()) {
             Log::warning('Estudiante sin grupos asignados', ['student_id' => $student->id]);
             return view('student.documents.document_show', compact('documents'))
                 ->with('error', 'No tienes grupos asignados. Contacta al administrador.');
         }
-    
-        // Obtener los grados de los grupos
+
         $grados = $classes->pluck('grado')->toArray();
         Log::info('Grados para filtrar:', ['grados' => $grados]);
-    
-        // Mostrar todos los documentos disponibles para comparación
-        $allDocuments = DocumentModel::all();
-        Log::info('Todos los documentos en la base:', ['documents' => $allDocuments->toArray()]);
-    
+
         $search = $request->get('search');
         if ($search) {
             $documents = DocumentModel::whereIn('categoria_grado', $grados)
@@ -236,14 +221,14 @@ class DocumentController extends Controller
                 })
                 ->get();
         }
-    
+
         Log::info('Documentos filtrados:', ['count' => $documents->count(), 'documents' => $documents->toArray()]);
-    
+
         if ($documents->isEmpty()) {
             return view('student.documents.document_show', compact('documents'))
                 ->with('warning', 'No hay documentos disponibles para tus grados.');
         }
-    
+
         return view('student.documents.document_show', compact('documents'));
     }
 }

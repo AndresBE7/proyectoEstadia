@@ -117,20 +117,19 @@
               <h5 class="text-primary mt-4"><i class="fas fa-book"></i> Asignatura y Contacto</h5>
               <hr>
               <div class="row">
-              <!-- Tipo de maestro -->
-              <div class="form-group col-md-6">
-                <label for="tipo_maestro"><i class="fas fa-chalkboard-teacher"></i> Tipo de Maestro</label>
-                <select class="form-control @error('tipo_maestro') is-invalid @enderror" id="tipo_maestro" name="tipo_maestro" required>
-                    <option value="" disabled selected>Seleccione un tipo</option>
-                    <option value="Profesor de tiempo completo" {{ old('tipo_maestro') == 'Profesor de tiempo completo' ? 'selected' : '' }}>Profesor de tiempo completo</option>
-                    <option value="Profesor de medio tiempo" {{ old('tipo_maestro') == 'Profesor de medio tiempo' ? 'selected' : '' }}>Profesor de medio tiempo</option>
-                    <option value="Profesor de asignatura" {{ old('tipo_maestro') == 'Profesor de asignatura' ? 'selected' : '' }}>Profesor de asignatura</option>
-                </select>
-                @error('tipo_maestro')
+                <!-- Tipo de maestro (usando asignatura_impartir) -->
+                <div class="form-group col-md-6">
+                  <label for="asignatura_impartir"><i class="fas fa-chalkboard-teacher"></i> Tipo de Maestro</label>
+                  <select class="form-control @error('asignatura_impartir') is-invalid @enderror" id="asignatura_impartir" name="asignatura_impartir" required>
+                      <option value="" disabled selected>Seleccione un tipo</option>
+                      <option value="Profesor de tiempo completo" {{ old('asignatura_impartir') == 'Profesor de tiempo completo' ? 'selected' : '' }}>Profesor de tiempo completo</option>
+                      <option value="Profesor de medio tiempo" {{ old('asignatura_impartir') == 'Profesor de medio tiempo' ? 'selected' : '' }}>Profesor de medio tiempo</option>
+                      <option value="Profesor de asignatura" {{ old('asignatura_impartir') == 'Profesor de asignatura' ? 'selected' : '' }}>Profesor de asignatura</option>
+                  </select>
+                  @error('asignatura_impartir')
                     <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-              </div>
-
+                  @enderror
+                </div>
 
                 <!-- Medio de Contacto -->
                 <div class="form-group col-md-6">
@@ -141,7 +140,6 @@
                   @enderror
                 </div>
               </div>
-
             </div>
 
             <!-- Botón de Registro -->
@@ -175,12 +173,11 @@
     const icon = this.querySelector('i');
     if (passwordConfirmationField.type === 'password') {
       passwordConfirmationField.type = 'text';
-      icon.classList.replace('fa-eye', 'fa-eye-slash');
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
     } else {
       passwordConfirmationField.type = 'password';
-      icon.classList.replace('fa-eye-slash', 'fa-eye');
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
     }
   });
 </script>
-
 @endsection

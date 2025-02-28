@@ -34,21 +34,36 @@ class ClassModel extends Model
         return $return;
     }
 
-        static public function getClass() {
-            $return = ClassModel::select('class.*')
-                ->where('class.is_delete', '=', 0)
-                ->orderBy('class.nombre', 'asc')
-                ->get();
-        
-            return $return;
-        }
-
-        // En app/Models/ClassModel.php
-        public function students()
-        {
-            return $this->belongsToMany(User::class, 'class_student', 'class_id', 'student_id')
-                        ->where('user_type', '=', 3); // Asumiendo que 3 es el código para estudiantes
-        }
+    static public function getClass() {
+        $return = ClassModel::select('class.*')
+            ->where('class.is_delete', '=', 0)
+            ->orderBy('class.nombre', 'asc')
+            ->get();
     
+        return $return;
+    }
+
+    // En app/Models/ClassModel.php
+    public function students()
+    {
+        return $this->belongsToMany(User::class, 'class_student', 'class_id', 'student_id')
+                    ->where('user_type', '=', 3); // Asumiendo que 3 es el código para estudiantes
+    }
+    public function teachers()
+    {
+        return $this->belongsToMany(User::class, 'class_teacher', 'class_id', 'teacher_id');
+    }
+
+    public function grades()
+    {
+        return $this->hasMany(Grade::class, 'class_id');
+    }
+    
+    // Relación opcional para obtener las materias directamente
+    public function subjects()
+    {
+        return $this->belongsToMany(SubjectModel::class, 'class_subject', 'class_id', 'subject_id');
+    }
+
 }
     
